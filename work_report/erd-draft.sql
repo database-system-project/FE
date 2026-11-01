@@ -78,16 +78,22 @@ CREATE TABLE reservation (
   reservation_id            BIGINT      NOT NULL AUTO_INCREMENT COMMENT '예약번호',
   patient_id                BIGINT      NOT NULL COMMENT '환자번호',
   schedule_id               BIGINT      NOT NULL COMMENT '일정번호',
+  previous_reservation_id   BIGINT      NULL COMMENT '변경 전 예약번호',
   planned_reception_at      DATETIME    NOT NULL COMMENT '접수 예정일시',
   reservation_status        VARCHAR(20) NOT NULL DEFAULT 'RESERVED' COMMENT '예약상태: RESERVED/CHECKED_IN/CANCELLED',
   reserved_at               DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '예약 신청일시',
   reservation_cancelled_at  DATETIME    NULL COMMENT '예약 취소일시',
+  active_planned_reception_at DATETIME  NULL COMMENT '유효 접수 예정일시',
   PRIMARY KEY (reservation_id),
-  KEY idx_reservation_slot (schedule_id, planned_reception_at),
+  UNIQUE KEY uq_reservation_active_slot (schedule_id, active_planned_reception_at),
   CONSTRAINT fk_reservation_patient FOREIGN KEY (patient_id) REFERENCES patient (patient_id),
   CONSTRAINT fk_reservation_schedule FOREIGN KEY (schedule_id) REFERENCES doctor_schedule (schedule_id),
+  CONSTRAINT fk_reservation_previous FOREIGN KEY (previous_reservation_id) REFERENCES reservation (reservation_id),
   CONSTRAINT ck_reservation_status CHECK (reservation_status IN ('RESERVED','CHECKED_IN','CANCELLED')),
-  CONSTRAINT ck_reservation_30min CHECK (MINUTE(planned_reception_at) IN (0, 30) AND SECOND(planned_reception_at) = 0)
+  CONSTRAINT ck_reservation_30min CHECK (MINUTE(planned_reception_at) IN (0, 30) AND SECOND(planned_reception_at) = 0),
+  CONSTRAINT ck_reservation_active CHECK (
+    (reservation_status = 'CANCELLED' AND active_planned_reception_at IS NULL) OR
+    (reservation_status <> 'CANCELLED' AND active_planned_reception_at = planned_reception_at))
 ) ENGINE=InnoDB COMMENT='예약';
 
 CREATE TABLE visit (
@@ -220,12 +226,14 @@ CREATE TABLE consultation_fee (
 CREATE TABLE payment (
   payment_id             BIGINT   NOT NULL AUTO_INCREMENT COMMENT '결제번호',
   visit_id               BIGINT   NOT NULL COMMENT '접수번호',
+  fee_id                 BIGINT   NOT NULL COMMENT '적용 진찰료번호',
   paid_amount            INT      NOT NULL COMMENT '결제금액',
   paid_at                DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '결제일시',
   processed_by_staff_id  BIGINT   NOT NULL COMMENT '수납 처리 직원번호',
   PRIMARY KEY (payment_id),
   UNIQUE KEY uq_payment_visit (visit_id),
   CONSTRAINT fk_payment_visit FOREIGN KEY (visit_id) REFERENCES visit (visit_id),
+  CONSTRAINT fk_payment_fee FOREIGN KEY (fee_id) REFERENCES consultation_fee (fee_id),
   CONSTRAINT fk_payment_staff FOREIGN KEY (processed_by_staff_id) REFERENCES staff (staff_id),
   CONSTRAINT ck_payment_amount CHECK (paid_amount >= 0)
 ) ENGINE=InnoDB COMMENT='결제';
