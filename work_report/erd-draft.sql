@@ -63,10 +63,10 @@ CREATE TABLE doctor_schedule (
   schedule_id      BIGINT     NOT NULL AUTO_INCREMENT COMMENT '일정번호',
   doctor_id        BIGINT     NOT NULL COMMENT '의사번호',
   schedule_date    DATE       NOT NULL COMMENT '진료일',
-  reception_start  TIME       NULL COMMENT '접수 시작시간',
-  closing_time     TIME       NULL COMMENT '진료 마감시간',
-  lunch_start      TIME       NULL COMMENT '점심 시작시간',
-  lunch_end        TIME       NULL COMMENT '점심 종료시간',
+  reception_start  TIME       NOT NULL DEFAULT '09:00:00' COMMENT '접수 시작시간',
+  closing_time     TIME       NOT NULL DEFAULT '17:00:00' COMMENT '진료 마감시간',
+  lunch_start      TIME       NOT NULL DEFAULT '12:30:00' COMMENT '점심 시작시간',
+  lunch_end        TIME       NOT NULL DEFAULT '13:30:00' COMMENT '점심 종료시간',
   is_closed        TINYINT(1) NOT NULL DEFAULT 0 COMMENT '휴진여부',
   PRIMARY KEY (schedule_id),
   UNIQUE KEY uq_schedule_doctor_date (doctor_id, schedule_date),
@@ -214,12 +214,14 @@ CREATE TABLE contraindication_override (
 
 CREATE TABLE consultation_fee (
   fee_id           BIGINT   NOT NULL AUTO_INCREMENT COMMENT '진찰료번호',
+  fee_type         VARCHAR(20) NOT NULL COMMENT '진찰료 구분: INITIAL/FOLLOW_UP',
   fee_amount       INT      NOT NULL COMMENT '진찰료 금액',
   effective_from   DATETIME NOT NULL COMMENT '적용 시작일시',
   set_by_staff_id  BIGINT   NOT NULL COMMENT '등록 관리자 직원번호',
   PRIMARY KEY (fee_id),
-  UNIQUE KEY uq_fee_effective (effective_from),
+  UNIQUE KEY uq_fee_type_effective (fee_type, effective_from),
   CONSTRAINT fk_fee_staff FOREIGN KEY (set_by_staff_id) REFERENCES staff (staff_id),
+  CONSTRAINT ck_fee_type CHECK (fee_type IN ('INITIAL','FOLLOW_UP')),
   CONSTRAINT ck_fee_amount CHECK (fee_amount >= 0)
 ) ENGINE=InnoDB COMMENT='진찰료';
 
