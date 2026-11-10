@@ -1,0 +1,10 @@
+{
+  "description": "병원 환자와 직원이 예약부터 접수, 진료, 처방 금기 확인, 수납까지 관리하는 시스템으로 업무 흐름과 복약 안전을 지원합니다.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
