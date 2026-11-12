@@ -39,9 +39,10 @@ react(),
       port: parseInt(process.env.PORT || '8443'),
       strictPort: true,
       // /api 로 시작하는 요청은 백엔드로 넘긴다 (CORS 걱정 없이 개발)
+      // localhost 대신 127.0.0.1: 백엔드가 127.0.0.1에서만 열려 있어서 Node가 ::1로 붙으면 연결이 안 된다
       proxy: {
         '/api': {
-          target: env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
+          target: env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8080',
           changeOrigin: true,
         },
       },

@@ -4,15 +4,24 @@
 
 ## 실행
 
-1. 백엔드를 로컬에서 켭니다 (BE 레포 안내대로, 기본 `http://localhost:8080`).
-2. 프론트를 켭니다.
+1. 백엔드를 로컬에서 켭니다 (BE 레포 `docs/LOCAL_SETUP.md`). 처음 한 번은 `./gradlew initLocalEnv`로 `.env`를 만듭니다.
+   ```bash
+   docker compose up -d --wait
+   ./gradlew clean bootRun      # http://127.0.0.1:8080
+   ```
+2. DB가 비어 있으면 로그인할 계정이 없습니다. 테스트 계정·진료과·의사 일정·진찰료를 넣는 시드를 실행합니다 (BE 폴더에서).
+   ```bash
+   docker compose exec -T postgres psql -U hospital -d hospital < (FE 레포 경로)/system-prototype/dev/local-test-seed.sql
+   ```
+   계정: `admin01`, `desk01`, `cashier01`, `doctor01`, `doctor02`, `patient01` / 비밀번호 `Test1234!`
+3. 프론트를 켭니다.
    ```bash
    cd system-prototype
    pnpm install
    pnpm dev        # http://localhost:8443
    ```
-3. 프론트에서 `/api/v1/...`로 부르면 Vite가 백엔드로 넘겨줍니다 (`vite.config.ts`의 `proxy`). 그래서 로컬에서는 CORS 설정이 필요 없습니다.
-4. 백엔드 주소가 다르면 `.env.example`을 복사해 `.env.local`을 만들고 `VITE_API_PROXY_TARGET`을 바꿉니다.
+4. 프론트에서 `/api/v1/...`로 부르면 Vite가 백엔드로 넘겨줍니다 (`vite.config.ts`의 `proxy`). 그래서 로컬에서는 CORS 설정이 필요 없습니다.
+5. 백엔드 주소가 다르면 `.env.example`을 복사해 `.env.local`을 만들고 `VITE_API_PROXY_TARGET`을 바꿉니다.
 
 ## 폴더
 
@@ -60,4 +69,4 @@ src/
 
 ## 시연 계정
 
-`pages/auth/Login.tsx`의 `demoAccounts` 아이디는 임시값입니다. 백엔드 시드 데이터의 계정이 정해지면 맞춰서 바꿉니다.
+`pages/auth/Login.tsx`의 `demoAccounts`는 로컬 테스트 시드의 아이디와 같습니다. 백엔드의 최종 시드 계정이 정해지면 맞춰서 바꿉니다.
