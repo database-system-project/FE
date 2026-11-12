@@ -1,31 +1,51 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { type Role } from "../../types";
 import { roleLabel } from "../../constants/roles";
 import { Icon } from "../../components/Icon";
 import { Button } from "../../components/Button";
+import { useAuth } from "../../auth/AuthContext";
+import { ApiError } from "../../api/client";
 
-export function Login({
-  onLogin,
-  navigate,
-}: {
-  onLogin: (r: Role) => void;
-  navigate: (s: string) => void;
-}) {
+// 시연용 계정 아이디. 백엔드 시드 데이터의 계정과 맞춰서 바꾼다.
+const demoAccounts: Record<Role, string> = {
+  patient: "patient01",
+  desk: "desk01",
+  doctor: "doctor01",
+  cashier: "cashier01",
+  admin: "admin01",
+};
+
+export function Login({ navigate }: { navigate: (s: string) => void }) {
+  const { login } = useAuth();
   const [selected, setSelected] = useState<Role>("patient");
-  const demoAccounts: Record<Role, string> = {
-    patient: "patient01",
-    desk: "desk01",
-    doctor: "doctor01",
-    cashier: "cashier01",
-    admin: "admin01",
-  };
   const [loginId, setLoginId] = useState(demoAccounts.patient);
-  const handleLogin = () => {
-    const accountRole =
-      (Object.keys(demoAccounts) as Role[]).find((role) => demoAccounts[role] === loginId) ||
-      "patient";
-    onLogin(accountRole);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!loginId.trim() || !password) {
+      setError("아이디와 비밀번호를 입력해 주세요.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      // 성공하면 AuthContext가 역할을 저장하고, App이 역할별 첫 화면으로 이동한다.
+      await login(loginId.trim(), password);
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "INVALID_CREDENTIALS") {
+        setError("아이디 또는 비밀번호를 확인해 주세요.");
+      } else if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        setError("로그인 중 문제가 발생했습니다.");
+      }
+      setLoading(false);
+    }
   };
+
   return (
     <main className="auth-page">
       <section className="auth-aside">
@@ -58,7 +78,7 @@ export function Login({
         </div>
       </section>
       <section className="auth-main">
-        <div className="login-form">
+        <form className="login-form" onSubmit={handleSubmit} noValidate>
           <div className="mobile-auth-brand">
             <span className="brand-mark">
               <Icon name="logo" />
@@ -74,19 +94,33 @@ export function Login({
               value={loginId}
               onChange={(event) => setLoginId(event.target.value)}
               placeholder="아이디를 입력하세요"
+              autoComplete="username"
             />
           </label>
           <label className="field">
             <span>비밀번호</span>
-            <input type="password" defaultValue="12345678" placeholder="비밀번호를 입력하세요" />
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="비밀번호를 입력하세요"
+              autoComplete="current-password"
+            />
           </label>
-          <Button className="login-submit" onClick={handleLogin}>
-            로그인
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
+          <Button className="login-submit" disabled={loading}>
+            {loading ? "로그인 중…" : "로그인"}
           </Button>
           <div className="auth-links">
-            <button>아이디 찾기</button>
+            <button type="button">아이디 찾기</button>
             <span />
-            <button onClick={() => navigate("signup")}>환자 회원가입</button>
+            <button type="button" onClick={() => navigate("signup")}>
+              환자 회원가입
+            </button>
           </div>
           <div className="demo-note">
             <Icon name="shield" size={17} />
@@ -109,7 +143,7 @@ export function Login({
               ))}
             </select>
           </div>
-        </div>
+        </form>
         <p className="copyright">© 2026 Oncare Clinic. All rights reserved.</p>
       </section>
     </main>
