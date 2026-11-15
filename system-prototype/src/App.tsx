@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { type Role, type Screen } from "./types";
+import { useAuth } from "./auth/AuthContext";
 import { AppShell } from "./components/AppShell";
 import { Login } from "./pages/auth/Login";
 import { Signup } from "./pages/auth/Signup";
@@ -23,17 +24,16 @@ import { AdminHome } from "./pages/admin/AdminHome";
 import { AdminTable } from "./pages/admin/AdminTable";
 import { Fees } from "./pages/admin/Fees";
 
+const homeOf = (role: Role | null): Screen => (role ? `${role}-home` : "login");
+
 export default function App() {
-  const [role, setRole] = useState<Role | null>(null);
-  const [screen, setScreen] = useState<Screen>("login");
-  const login = (r: Role) => {
-    setRole(r);
-    setScreen(`${r}-home`);
-  };
-  const logout = () => {
-    setRole(null);
-    setScreen("login");
-  };
+  // 로그인 정보는 AuthContext가 관리한다 (src/auth/AuthContext.tsx)
+  const { role, logout } = useAuth();
+  const [screen, setScreen] = useState<Screen>(() => homeOf(role));
+  // 로그인하면 역할별 첫 화면으로, 로그아웃(또는 토큰 만료)하면 로그인 화면으로
+  useEffect(() => {
+    setScreen(homeOf(role));
+  }, [role]);
   const content = useMemo(() => {
     if (!role) return null;
     switch (screen) {
@@ -83,7 +83,7 @@ export default function App() {
     }
   }, [role, screen]);
   if (!role && screen === "signup") return <Signup back={() => setScreen("login")} />;
-  if (!role) return <Login onLogin={login} navigate={setScreen} />;
+  if (!role) return <Login navigate={setScreen} />;
   return (
     <AppShell role={role} screen={screen} navigate={setScreen} logout={logout}>
       {content}

@@ -557,6 +557,15 @@
   height: 47px;
   margin-top: 5px;
 }
+.form-error {
+  margin: 0 0 10px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  background: #fdf0f0;
+  color: var(--red);
+  font-size: 12px;
+  line-height: 1.45;
+}
 .auth-links {
   display: flex;
   justify-content: center;
