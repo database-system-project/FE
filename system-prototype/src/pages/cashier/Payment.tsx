@@ -4,12 +4,13 @@ import { Badge } from "../../components/Badge";
 import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
 import { Receipt } from "../shared/Receipt";
+import { sampleReceipt } from "../../mocks/data";
 import { PrescriptionDocument } from "./PrescriptionDocument";
 
 export function Payment({ navigate }: { navigate: (s: string) => void }) {
   const [paid, setPaid] = useState(false);
   const [doc, setDoc] = useState<"receipt" | "rx" | null>(null);
-  if (doc === "receipt") return <Receipt close={() => setDoc(null)} />;
+  if (doc === "receipt") return <Receipt receipt={sampleReceipt} close={() => setDoc(null)} />;
   if (doc === "rx") return <PrescriptionDocument close={() => setDoc(null)} />;
   return (
     <>

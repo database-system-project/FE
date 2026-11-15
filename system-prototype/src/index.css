@@ -3272,3 +3272,48 @@ td.ellipsis-cell {
 .schedule-doctor-picker button small.subtext {
   margin-left: 4px;
 }
+
+/* 환자 내 정보: 기본정보·비밀번호 폼 두 장 */
+.profile-forms {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* 환자 진료 내역: 상세 펼침 */
+.record-main {
+  min-width: 0;
+}
+.record-detail {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+}
+.record-detail > div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  font-size: 11px;
+}
+.record-detail dt {
+  color: #8290a0;
+}
+.record-detail dd {
+  color: #33475b;
+  white-space: pre-wrap;
+  display: grid;
+  gap: 3px;
+}
+.record-detail .cancelled {
+  color: #a0aab5;
+  text-decoration: line-through;
+}
+
+/* 환자 복약 안내: 처방 고르기 */
+.rx-picker {
+  max-width: 460px;
+  margin-bottom: 14px;
+}

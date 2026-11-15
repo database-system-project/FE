@@ -297,3 +297,69 @@ export type PatientAppointment = {
 export type AppointmentSlot = { scheduleId: number; startsAt: string };
 export type RescheduleResponse = { previousAppointmentId: number; newAppointment: PatientAppointment };
 export type AppointmentCancelResponse = { appointmentId: number; status: "CANCELLED"; cancelledAt: string };
+
+// ── 환자 내 정보·이용내역 ──────────────────────────────
+
+/** GET /me 의 profile (환자) · PATCH /me/profile 응답 */
+export type PatientProfile = {
+  patientId: number;
+  name: string;
+  birthDate: string;
+  gender: "M" | "F";
+  phone: string;
+};
+
+export type PaymentStatus = "UNPAID" | "PAID";
+
+/** GET /me/visits 의 items[] (진료 완료만, 최신순) */
+export type PatientVisit = {
+  visitId: number;
+  visitDate: string;
+  departmentName: string;
+  doctorName: string;
+  status: "COMPLETED";
+  paymentStatus: PaymentStatus;
+  paymentId: number | null;
+};
+
+/** GET /me/visits/{visitId} */
+export type PatientVisitDetail = {
+  visit: QueueVisit;
+  medicalRecord: MedicalRecord | null;
+  prescriptions: { prescriptionId: number; status: PrescriptionStatus; prescribedAt: string }[];
+  paymentStatus: PaymentStatus;
+  paymentId: number | null;
+};
+
+/** GET /me/prescriptions/{prescriptionId} 의 items[]: 처방 품목 + 약품 안내 */
+export type MedGuideItem = PrescriptionItem & {
+  name: string;
+  efficacy: string | null;
+  usage: string | null;
+  precautions: string | null;
+  storage: string | null;
+};
+
+/** GET /me/prescriptions/{prescriptionId} */
+export type MedGuide = {
+  prescriptionId: number;
+  status: PrescriptionStatus;
+  prescribedAt: string;
+  items: MedGuideItem[];
+};
+
+/** GET /payments/{paymentId}/receipt */
+export type Receipt = {
+  receiptNumber: number;
+  paymentId: number;
+  feeId: number;
+  feeType: FeeType;
+  amount: number;
+  currency: "KRW";
+  paidAt: string;
+  patientId: number;
+  patientName: string;
+  visitDate: string;
+  departmentName: string;
+  doctorName: string;
+};
