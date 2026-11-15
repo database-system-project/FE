@@ -268,3 +268,32 @@ export type AgeContraindication = {
 };
 
 export type AdminSchedule = DoctorSchedule;
+
+// ── 환자 예약 ──────────────────────────────
+
+/** GET /departments 의 items[] (예약용, 활성 진료과만) */
+export type BookingDepartment = { departmentId: number; name: string };
+/** GET /departments/{id}/doctors 의 items[] */
+export type BookingDoctor = { doctorId: number; name: string; departmentId: number };
+/** GET /doctors/{id}/availability */
+export type Availability = { doctorId: number; items: { date: string; scheduleId: number; slots: string[] }[] };
+
+/** 환자 본인 예약 (목록·상세·신청 응답) */
+export type PatientAppointment = {
+  appointmentId: number;
+  appointmentCode: string;
+  patientId: number;
+  departmentId: number;
+  departmentName: string;
+  doctorId: number;
+  doctorName: string;
+  scheduleId: number;
+  startsAt: string;
+  status: AppointmentStatus;
+  canReschedule: boolean;
+  canCancel: boolean;
+};
+
+export type AppointmentSlot = { scheduleId: number; startsAt: string };
+export type RescheduleResponse = { previousAppointmentId: number; newAppointment: PatientAppointment };
+export type AppointmentCancelResponse = { appointmentId: number; status: "CANCELLED"; cancelledAt: string };

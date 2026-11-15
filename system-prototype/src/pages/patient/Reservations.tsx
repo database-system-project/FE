@@ -1,12 +1,52 @@
 import { useState } from "react";
-import { reservationRows } from "../../mocks/data";
 import { Icon } from "../../components/Icon";
 import { Badge } from "../../components/Badge";
 import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
+import { TableState } from "../../components/TableState";
+import { ApiError } from "../../api/client";
+import { patientApi } from "../../api/patient";
+import { useApi } from "../../api/useApi";
+import type { PatientAppointment } from "../../api/types";
+import { appointmentStatusLabel, appointmentStatusTone, formatDate, formatTime } from "../../utils/format";
+import { rescheduleTarget } from "./rescheduleTarget";
+
+type Tab = "ALL" | "UPCOMING" | "PAST";
 
 export function Reservations({ navigate }: { navigate: (s: string) => void }) {
-  const [cancelled, setCancelled] = useState(false);
+  const [tab, setTab] = useState<Tab>("ALL");
+  const { data, loading, error, reload } = useApi(() => patientApi.appointments(), []);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const all = data?.items ?? [];
+  // 서버의 UPCOMING 기준과 같게: 예약완료이면서 아직 시간이 안 지난 것
+  const upcoming = all.filter((a) => a.status === "RESERVED" && new Date(a.startsAt).getTime() >= Date.now());
+  const past = all.filter((a) => !upcoming.includes(a));
+  const rows = tab === "ALL" ? all : tab === "UPCOMING" ? upcoming : past;
+
+  const change = (a: PatientAppointment) => {
+    rescheduleTarget.set(a);
+    navigate("booking");
+  };
+
+  const cancel = async (a: PatientAppointment) => {
+    setBusy(true);
+    try {
+      await patientApi.cancel(a.appointmentId);
+      setNotice({ ok: true, text: `${a.appointmentCode} 예약을 취소했습니다.` });
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "INVALID_APPOINTMENT_STATE")
+        setNotice({ ok: false, text: "이미 접수됐거나 지난 예약은 취소할 수 없습니다." });
+      else setNotice({ ok: false, text: e instanceof ApiError ? e.message : "예약 취소 중 문제가 발생했습니다." });
+    } finally {
+      setBusy(false);
+      setConfirmId(null);
+      void reload();
+    }
+  };
+
   return (
     <>
       <PageHeader
@@ -19,10 +59,21 @@ export function Reservations({ navigate }: { navigate: (s: string) => void }) {
         }
       />
       <div className="tabs">
-        <button className="active">전체 3</button>
-        <button>예정된 예약 1</button>
-        <button>지난 예약 2</button>
+        <button className={tab === "ALL" ? "active" : ""} onClick={() => setTab("ALL")}>
+          전체 {all.length}
+        </button>
+        <button className={tab === "UPCOMING" ? "active" : ""} onClick={() => setTab("UPCOMING")}>
+          예정된 예약 {upcoming.length}
+        </button>
+        <button className={tab === "PAST" ? "active" : ""} onClick={() => setTab("PAST")}>
+          지난 예약 {past.length}
+        </button>
       </div>
+      {notice && (
+        <p className={notice.ok ? "form-notice" : "form-error"} role="status">
+          {notice.text}
+        </p>
+      )}
       <div className="data-card">
         <div className="table-wrap">
           <table>
@@ -38,47 +89,56 @@ export function Reservations({ navigate }: { navigate: (s: string) => void }) {
               </tr>
             </thead>
             <tbody>
-              {reservationRows.map((r, i) => (
-                <tr key={r[0]}>
-                  <td className="code">{r[0]}</td>
+              {rows.map((a) => (
+                <tr key={a.appointmentId}>
+                  <td className="code">{a.appointmentCode}</td>
                   <td>
-                    <b>{r[1]}</b>
+                    <b>{a.departmentName}</b>
                   </td>
-                  <td>{r[2]} 의사</td>
-                  <td>{r[3]}</td>
-                  <td>{r[4]}</td>
+                  <td>{a.doctorName} 의사</td>
+                  <td>{formatDate(a.startsAt)}</td>
+                  <td>{formatTime(a.startsAt)}</td>
                   <td>
-                    <Badge tone={i === 0 && !cancelled ? "blue" : i === 1 ? "green" : "gray"}>
-                      {i === 0 && cancelled ? "취소" : r[5]}
-                    </Badge>
+                    <Badge tone={appointmentStatusTone[a.status]}>{appointmentStatusLabel[a.status]}</Badge>
                   </td>
                   <td className="right">
-                    {i === 0 && !cancelled ? (
+                    {confirmId === a.appointmentId ? (
                       <div className="row-actions">
-                        <Button variant="outline" onClick={() => navigate("booking")}>
-                          예약 변경
+                        <span className="subtext">정말 취소할까요?</span>
+                        <Button variant="danger-ghost" disabled={busy} onClick={() => cancel(a)}>
+                          {busy ? "처리 중…" : "취소 확정"}
                         </Button>
-                        <Button variant="danger-ghost" onClick={() => setCancelled(true)}>
-                          예약 취소
-                        </Button>
+                        <button className="text-link" onClick={() => setConfirmId(null)} disabled={busy}>
+                          닫기
+                        </button>
                       </div>
                     ) : (
-                      <button className="text-link">상세 보기</button>
+                      <div className="row-actions">
+                        {a.canReschedule && (
+                          <Button variant="outline" onClick={() => change(a)}>
+                            예약 변경
+                          </Button>
+                        )}
+                        {a.canCancel && (
+                          <Button variant="danger-ghost" onClick={() => setConfirmId(a.appointmentId)}>
+                            예약 취소
+                          </Button>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <TableState loading={loading} error={error} empty={rows.length === 0} emptyText="예약 내역이 없습니다." />
         </div>
       </div>
       <div className="info-banner">
         <Icon name="calendar" />
         <span>
           <b>예약 변경 안내</b>
-          <small>
-            예약 변경 시 기존 예약은 취소 처리되고, 선택한 시간으로 새 예약이 생성됩니다.
-          </small>
+          <small>예약 변경 시 기존 예약은 취소 처리되고, 선택한 시간으로 새 예약이 생성됩니다.</small>
         </span>
       </div>
     </>
