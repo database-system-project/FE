@@ -8,6 +8,7 @@ export function Button({
   onClick,
   disabled,
   className = "",
+  type,
 }: {
   children: ReactNode;
   variant?: string;
@@ -15,9 +16,11 @@ export function Button({
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
+  /** 폼 안에서 제출하지 않는 버튼은 "button" */
+  type?: "button" | "submit";
 }) {
   return (
-    <button className={`btn btn-${variant} ${className}`} onClick={onClick} disabled={disabled}>
+    <button type={type} className={`btn btn-${variant} ${className}`} onClick={onClick} disabled={disabled}>
       {icon && <Icon name={icon} size={17} />}
       {children}
     </button>
