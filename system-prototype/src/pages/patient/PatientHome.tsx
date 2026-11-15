@@ -2,12 +2,26 @@ import { Icon } from "../../components/Icon";
 import { Badge } from "../../components/Badge";
 import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
+import { useAuth } from "../../auth/AuthContext";
+import { patientApi } from "../../api/patient";
+import { useApi } from "../../api/useApi";
+import { dateKey, formatTime } from "../../utils/format";
+
+const WEEKDAY = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
 export function PatientHome({ navigate }: { navigate: (s: string) => void }) {
+  const { user } = useAuth();
+  const upcoming = useApi(() => patientApi.appointments({ period: "UPCOMING" }), []);
+  // 목록은 최신순(내림차순)이라 가장 가까운 예약은 맨 뒤
+  const items = upcoming.data?.items ?? [];
+  const next = items.length ? items[items.length - 1] : null;
+  const day = next ? dateKey(new Date(next.startsAt)) : "";
+  const [y, m, d] = day ? day.split("-").map(Number) : [0, 0, 0];
+  const weekday = day ? WEEKDAY[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] : "";
   return (
     <>
       <PageHeader
-        title="안녕하세요, 홍길동님"
+        title={`안녕하세요, ${user?.name ?? ""}님`}
         description="오늘도 건강한 하루 보내세요. 예정된 진료 일정을 확인해 주세요."
       />
       <div className="patient-hero">
@@ -17,32 +31,45 @@ export function PatientHome({ navigate }: { navigate: (s: string) => void }) {
               <span className="section-kicker">NEXT APPOINTMENT</span>
               <h2>다음 예약</h2>
             </div>
-            <Badge>예약완료</Badge>
+            {next && <Badge>예약완료</Badge>}
           </div>
-          <div className="appointment-date">
-            <strong>11</strong>
-            <span>
-              2026년 11월
-              <br />
-              <b>수요일</b>
-            </span>
-          </div>
-          <div className="appointment-info">
-            <div>
-              <small>진료과 / 담당 의사</small>
-              <b>내과 · 이정훈 의사</b>
-            </div>
-            <div>
-              <small>접수 예정시간</small>
-              <b>오전 10:30</b>
-            </div>
-          </div>
-          <div className="appointment-notice">
-            <Icon name="clock" size={17} /> 예약한 접수 예정시간에 병원에 방문해 주세요.
-          </div>
-          <Button onClick={() => navigate("reservations")}>
-            예약 상세 보기 <Icon name="chevron" size={16} />
-          </Button>
+          {next ? (
+            <>
+              <div className="appointment-date">
+                <strong>{d}</strong>
+                <span>
+                  {y}년 {m}월
+                  <br />
+                  <b>{weekday}</b>
+                </span>
+              </div>
+              <div className="appointment-info">
+                <div>
+                  <small>진료과 / 담당 의사</small>
+                  <b>
+                    {next.departmentName} · {next.doctorName} 의사
+                  </b>
+                </div>
+                <div>
+                  <small>접수 예정시간</small>
+                  <b>{formatTime(next.startsAt)}</b>
+                </div>
+              </div>
+              <div className="appointment-notice">
+                <Icon name="clock" size={17} /> 예약한 접수 예정시간에 병원에 방문해 주세요.
+              </div>
+              <Button onClick={() => navigate("reservations")}>
+                예약 상세 보기 <Icon name="chevron" size={16} />
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="table-state">{upcoming.loading ? "불러오는 중…" : upcoming.error || "예정된 예약이 없습니다."}</p>
+              <Button onClick={() => navigate("booking")}>
+                진료 예약하기 <Icon name="chevron" size={16} />
+              </Button>
+            </>
+          )}
         </div>
         <div className="quick-panel">
           <h3>빠른 메뉴</h3>
