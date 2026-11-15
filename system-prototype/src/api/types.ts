@@ -99,3 +99,125 @@ export type VisitCancelResponse = {
 };
 
 export type ListResponse<T> = { items: T[] };
+
+// ── 의사 (진료·처방) ──────────────────────────────
+
+export type PrescriptionStatus = "ACTIVE" | "CANCELLED";
+export type DoseTiming = "BEFORE_MEAL" | "AFTER_MEAL" | "BEDTIME";
+export type WarningType = "INTERACTION" | "AGE";
+
+/** GET /me 의 의사 profile */
+export type DoctorProfile = {
+  doctorId: number;
+  departmentId: number;
+  departmentName: string;
+};
+
+/** GET /doctor/schedules 의 items[] */
+export type DoctorSchedule = {
+  scheduleId: number;
+  doctorId: number;
+  doctorName: string;
+  date: string; // YYYY-MM-DD
+  receptionStart: string; // "09:00"
+  closingTime: string;
+  lunchStart: string;
+  lunchEnd: string;
+  closed: boolean;
+};
+
+export type VisitPatient = {
+  patientId: number;
+  name: string;
+  birthDate: string;
+  gender: "M" | "F";
+  phone: string;
+};
+
+export type MedicalRecord = {
+  recordId: number;
+  visitId: number;
+  symptoms: string;
+  diagnosis: string;
+  treatmentNote: string;
+  writtenAt: string;
+  updatedAt: string;
+};
+
+export type MedicalRecordInput = {
+  symptoms: string;
+  diagnosis: string;
+  treatmentNote: string;
+};
+
+/** 다른 진료에서 받아 아직 복용 기간이 남은 약 */
+export type CurrentMedication = {
+  prescriptionId: number;
+  medicationId: number;
+  prescribedAt: string;
+  durationDays: number;
+};
+
+export type PrescriptionItem = {
+  medicationId: number;
+  dosePerIntake: number;
+  doseUnit: string;
+  timesPerDay: number;
+  intervalDays: number;
+  durationDays: number;
+  timing: DoseTiming;
+  instructions: string;
+};
+
+export type VisitPrescription = {
+  prescriptionId: number;
+  visitId: number;
+  status: PrescriptionStatus;
+  prescribedAt: string;
+  items: PrescriptionItem[];
+};
+
+/** GET /doctor/visits/{visitId} */
+export type DoctorVisitDetail = {
+  visit: QueueVisit;
+  patient: VisitPatient;
+  medicalRecord: MedicalRecord | null;
+  currentMedications: CurrentMedication[];
+  prescriptions: VisitPrescription[];
+};
+
+export type VisitStartResponse = { visitId: number; status: "IN_PROGRESS"; startedAt: string };
+export type VisitCompleteResponse = {
+  visitId: number;
+  status: "COMPLETED";
+  completedAt: string;
+  paymentStatus: "UNPAID";
+};
+
+/** GET /doctor/medications 의 items[] */
+export type Medication = {
+  medicationId: number;
+  itemSeq: string;
+  name: string;
+  companyName: string;
+  efficacy: string | null;
+  usage: string | null;
+  precautions: string | null;
+  storage: string | null;
+  active: boolean;
+};
+
+export type DurWarning = {
+  warningId: string; // 서버가 준 값을 그대로 돌려보낸다
+  type: WarningType;
+  ruleKey: { medicationId?: number; ageSeq?: number; medicationAId?: number; medicationBId?: number };
+  medicationIds: number[];
+  message: string;
+};
+
+export type PrescriptionSaveRequest = {
+  items: PrescriptionItem[];
+  overrides: { warningId: string; reason: string }[];
+};
+
+export type PrescriptionSaveResponse = { prescriptionId: number; status: "ACTIVE"; warningCount: number };

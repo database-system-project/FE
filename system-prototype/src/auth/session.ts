@@ -1,4 +1,4 @@
-import type { LoginUser } from "../api/types";
+import type { DoctorProfile, LoginUser } from "../api/types";
 
 // 로그인 정보를 브라우저(localStorage)에 저장해서 새로고침해도 로그인이 유지되게 한다.
 // 시크릿 창 등에서 저장소를 못 쓰면 저장만 안 될 뿐 앱은 그대로 동작한다.
@@ -7,6 +7,8 @@ export type Session = {
   accessToken: string;
   expiresAt: number; // 만료 시각 (ms)
   user: LoginUser;
+  /** 의사만: 로그인 직후 /me로 받아 둔 진료과 정보 (로그인 응답에는 진료과가 없다) */
+  doctorProfile?: DoctorProfile;
 };
 
 const KEY = "oncare.session";
