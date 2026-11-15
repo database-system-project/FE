@@ -11,7 +11,6 @@ import { Records } from "./pages/patient/Records";
 import { MedGuide } from "./pages/patient/MedGuide";
 import { PatientInfo } from "./pages/patient/PatientInfo";
 import { Receipts } from "./pages/shared/Receipts";
-import { ScheduleView } from "./pages/shared/ScheduleView";
 import { DeskDashboard } from "./pages/desk/DeskDashboard";
 import { DeskReservations } from "./pages/desk/DeskReservations";
 import { Waiting } from "./pages/desk/Waiting";
@@ -22,8 +21,12 @@ import { DoctorSchedule } from "./pages/doctor/DoctorSchedule";
 import { CashierHome } from "./pages/cashier/CashierHome";
 import { Payment } from "./pages/cashier/Payment";
 import { AdminHome } from "./pages/admin/AdminHome";
-import { AdminTable } from "./pages/admin/AdminTable";
 import { Fees } from "./pages/admin/Fees";
+import { Departments } from "./pages/admin/Departments";
+import { Accounts } from "./pages/admin/Accounts";
+import { Medicines } from "./pages/admin/Medicines";
+import { DurRules } from "./pages/admin/DurRules";
+import { DoctorsSchedules } from "./pages/admin/DoctorsSchedules";
 
 const homeOf = (role: Role | null): Screen => (role ? `${role}-home` : "login");
 
@@ -75,12 +78,21 @@ export default function App() {
         return <Payment navigate={setScreen} />;
       case "admin-home":
         return <AdminHome navigate={setScreen} />;
+      case "departments":
+        return <Departments />;
       case "doctors":
-        return <ScheduleView editable />;
+        return <DoctorsSchedules />;
+      case "accounts":
+        return <Accounts />;
+      case "medicines":
+        return <Medicines />;
+      case "interactions":
+      case "age-rules":
+        return <DurRules key={screen} kind={screen} />;
       case "fees":
         return <Fees />;
       default:
-        return <AdminTable type={screen} />;
+        return null;
     }
   }, [role, screen]);
   if (!role && screen === "signup") return <Signup back={() => setScreen("login")} />;

@@ -221,3 +221,50 @@ export type PrescriptionSaveRequest = {
 };
 
 export type PrescriptionSaveResponse = { prescriptionId: number; status: "ACTIVE"; warningCount: number };
+
+// ── 관리자 ──────────────────────────────
+
+export type StaffRole = "DOCTOR" | "RECEPTION" | "CASHIER" | "ADMIN";
+export type FeeType = "FIRST_VISIT" | "FOLLOW_UP";
+export type AgeOperator = "LT" | "LTE";
+
+export type StaffAccount = { accountId: number; loginId: string; name: string; role: StaffRole; active: boolean };
+export type StaffAccountDetail = StaffAccount & { staffId: number; doctorId: number | null };
+export type StaffAccountCreate = { loginId: string; initialPassword: string; name: string; role: StaffRole; active: boolean };
+
+export type Department = { departmentId: number; name: string; active: boolean };
+
+export type AdminDoctor = {
+  doctorId: number;
+  accountId: number;
+  departmentId: number;
+  departmentName: string;
+  name: string;
+  active: boolean;
+};
+export type AdminDoctorCreate = { accountId: number; departmentId: number; name: string; active: boolean };
+
+export type ConsultationFee = { feeId: number; feeType: FeeType; amount: number; currency: "KRW"; effectiveFrom: string };
+
+export type MedicationInput = {
+  itemSeq: string;
+  name: string;
+  companyName: string;
+  efficacy: string | null;
+  usage: string | null;
+  precautions: string | null;
+  storage: string | null;
+  active: boolean;
+};
+
+export type DrugInteraction = { type: "INTERACTION"; medicationAId: number; medicationBId: number; message: string };
+export type AgeContraindication = {
+  type: "AGE";
+  medicationId: number;
+  ageSeq: number;
+  ageLimit: number;
+  ageOperator: AgeOperator;
+  message: string;
+};
+
+export type AdminSchedule = DoctorSchedule;

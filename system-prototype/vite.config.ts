@@ -44,6 +44,12 @@ react(),
         '/api': {
           target: env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8080',
           changeOrigin: true,
+          // 다른 기기에서 http://<맥 IP>:8443 으로 열면 브라우저가 Origin에 그 IP를 붙이고,
+          // 백엔드 CORS 허용 목록(localhost:8443)에 없어서 403이 난다.
+          // 프록시를 거치면 브라우저 입장에선 같은 출처라 CORS가 필요 없으므로 Origin을 떼고 넘긴다.
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'))
+          },
         },
       },
       watch: {
