@@ -55,3 +55,51 @@ export const visitStatusTone: Record<VisitStatus, string> = {
   COMPLETED: "green",
   CANCELLED: "red",
 };
+
+/** "2026-11-10" 또는 ISO 일시 → "2026.11.10" (한국 날짜 기준) */
+export function formatDate(value: string | null | undefined) {
+  if (!value) return "-";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value.replace(/-/g, ".");
+  return dateKey(new Date(value)).replace(/-/g, ".");
+}
+
+/** 한국 날짜 "YYYY-MM-DD" */
+export function dateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+  return parts; // en-CA는 YYYY-MM-DD 형식
+}
+
+/** "YYYY-MM-DD"에 일수를 더한 날짜 */
+export function addDays(key: string, days: number) {
+  const d = new Date(`${key}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** 오늘(한국) 기준 만 나이 */
+export function ageOf(birthDate: string, today = dateKey()) {
+  const [by, bm, bd] = birthDate.split("-").map(Number);
+  const [ty, tm, td] = today.split("-").map(Number);
+  return ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
+}
+
+export const genderLabel: Record<"M" | "F", string> = { M: "남성", F: "여성" };
+
+/** "01012345678" → "010-1234-5678" */
+export function formatPhone(phone: string) {
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 11) return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+  return phone;
+}
+
+/** 처방일 + 투약일수 → 복용 마지막 날 (처방일 포함, 처방일+일수 미만) */
+export function medicationEndDate(prescribedAt: string, durationDays: number) {
+  return addDays(dateKey(new Date(prescribedAt)), durationDays - 1);
+}
+
+export const timingLabel: Record<"BEFORE_MEAL" | "AFTER_MEAL" | "BEDTIME", string> = {
+  BEFORE_MEAL: "식전",
+  AFTER_MEAL: "식후",
+  BEDTIME: "취침 전",
+};

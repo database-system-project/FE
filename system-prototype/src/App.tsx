@@ -18,6 +18,7 @@ import { Waiting } from "./pages/desk/Waiting";
 import { DoctorDashboard } from "./pages/doctor/DoctorDashboard";
 import { MedicalRecord } from "./pages/doctor/MedicalRecord";
 import { Prescription } from "./pages/doctor/Prescription";
+import { DoctorSchedule } from "./pages/doctor/DoctorSchedule";
 import { CashierHome } from "./pages/cashier/CashierHome";
 import { Payment } from "./pages/cashier/Payment";
 import { AdminHome } from "./pages/admin/AdminHome";
@@ -63,7 +64,7 @@ export default function App() {
       case "doctor-records":
         return <MedicalRecord navigate={setScreen} />;
       case "doctor-schedule":
-        return <ScheduleView />;
+        return <DoctorSchedule />;
       case "prescription":
         return <Prescription navigate={setScreen} />;
       case "cashier-home":

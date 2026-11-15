@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { authApi } from "../api/auth";
 import { AUTH_EXPIRED_EVENT } from "../api/client";
-import type { ApiRole, LoginUser } from "../api/types";
+import type { ApiRole, DoctorProfile, LoginUser } from "../api/types";
 import { type Role } from "../types";
 import { clearSession, loadSession, saveSession, type Session } from "./session";
 
@@ -19,6 +19,8 @@ type AuthValue = {
   user: LoginUser | null;
   /** 화면용 역할 (patient, desk, doctor, cashier, admin). 로그인 전이면 null */
   role: Role | null;
+  /** 의사로 로그인했을 때만: 진료과 등 /me의 profile */
+  doctorProfile: DoctorProfile | null;
   /** 실패하면 ApiError를 던진다 (예: code가 INVALID_CREDENTIALS) */
   login: (loginId: string, password: string) => Promise<void>;
   logout: () => void;
@@ -41,7 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       expiresAt: Date.now() + res.expiresIn * 1000,
       user: res.user,
     };
-    saveSession(next);
+    saveSession(next); // 아래 /me 호출에 토큰이 필요해서 먼저 저장한다
+    if (res.user.role === "DOCTOR") {
+      // 로그인 응답에는 진료과가 없어서 /me로 한 번 더 받는다. 실패해도 로그인은 유지한다.
+      try {
+        const me = await authApi.me();
+        next.doctorProfile = me.profile as DoctorProfile;
+        saveSession(next);
+      } catch {
+        /* 진료과 표시만 빠진다 */
+      }
+    }
     setSession(next);
   }, []);
 
@@ -62,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user: session?.user ?? null,
       role: session ? roleFromApi[session.user.role] : null,
+      doctorProfile: session?.doctorProfile ?? null,
       login,
       logout,
     }),

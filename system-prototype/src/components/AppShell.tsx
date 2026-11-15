@@ -4,6 +4,7 @@ import { roleLabel } from "../constants/roles";
 import { menus } from "../constants/menus";
 import { Icon } from "./Icon";
 import { EmptyAvatar } from "./EmptyAvatar";
+import { useAuth } from "../auth/AuthContext";
 
 export function AppShell({
   role,
@@ -19,16 +20,7 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [mobileMenu, setMobileMenu] = useState(false);
-  const user =
-    role === "patient"
-      ? "홍길동"
-      : role === "doctor"
-        ? "이정훈"
-        : role === "admin"
-          ? "김관리"
-          : role === "cashier"
-            ? "최수납"
-            : "박원무";
+  const user = useAuth().user?.name ?? "";
   return (
     <div className="app-shell">
       <aside className={`sidebar ${mobileMenu ? "sidebar-open" : ""}`}>

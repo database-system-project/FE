@@ -3138,3 +3138,109 @@ tbody tr:hover {
     max-width: none;
   }
 }
+
+/* ── 의사 화면 (진료기록·처방 API 연동) ───────────── */
+.btn-success {
+  background: var(--green, #1f9d61);
+  color: #fff;
+}
+.btn-success:hover {
+  filter: brightness(0.94);
+}
+.confirm-list {
+  margin: 14px 0 18px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f5f7f9;
+  display: grid;
+  gap: 8px;
+}
+.confirm-list div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.confirm-list dt {
+  color: #8290a0;
+}
+.confirm-list dd {
+  margin: 0;
+  font-weight: 700;
+}
+.empty-visit {
+  padding: 48px 24px;
+  text-align: center;
+}
+.empty-visit h2 {
+  margin: 12px 0 6px;
+  font-size: 18px;
+}
+.empty-visit p {
+  margin: 0 0 18px;
+  color: #6b7785;
+  font-size: 13px;
+}
+.warning-list {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+  max-height: 46vh;
+  overflow-y: auto;
+  text-align: left;
+}
+.warning-item {
+  border: 1px solid #f0d3d3;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fffafa;
+}
+.warning-item .conflict-box,
+.warning-item .age-conflict-box {
+  margin: 8px 0;
+}
+.warning-item .risk-content {
+  margin: 8px 0;
+}
+.rx-history {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+.rx-history article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e3e8ee;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.rx-history article.cancelled {
+  opacity: 0.6;
+}
+.rx-history small {
+  display: block;
+  color: #8290a0;
+  font-size: 12px;
+}
+/* 1회 투약량 칸 안쪽 오른쪽에 붙는 투약 단위 입력 (기존 "일" 표시와 같은 위치) */
+.dose-grid label > div:has(.unit-input) > input:first-child {
+  padding-right: 44px;
+}
+.dose-grid label > div .unit-input {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 36px;
+  height: 25px;
+  padding: 0 4px;
+  border-color: transparent;
+  background: #f3f6f9;
+  text-align: center;
+  color: #5d6f82;
+}
+.rx-history h3 {
+  margin: 0 0 2px;
+  font-size: 14px;
+}
