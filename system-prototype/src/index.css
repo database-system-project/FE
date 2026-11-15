@@ -3202,7 +3202,9 @@ tbody tr:hover {
   margin: 8px 0;
 }
 .rx-history {
-  margin-top: 16px;
+  margin: 0 12px 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
   display: grid;
   gap: 8px;
 }
