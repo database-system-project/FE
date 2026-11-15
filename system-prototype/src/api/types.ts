@@ -44,3 +44,58 @@ export type MeResponse = {
   active: boolean;
   profile: Record<string, unknown>;
 };
+
+// ── 접수·진료 (원무) ──────────────────────────────
+
+export type AppointmentStatus = "RESERVED" | "CHECKED_IN" | "CANCELLED";
+export type VisitStatus = "WAITING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+
+/** GET /reception/appointments 의 items[] */
+export type ReceptionAppointment = {
+  appointmentId: number;
+  appointmentCode: string;
+  patientId: number;
+  patientName: string;
+  departmentId: number;
+  departmentName: string;
+  doctorId: number;
+  doctorName: string;
+  scheduleId: number;
+  startsAt: string; // 접수 예정시각 (ISO, +09:00)
+  status: AppointmentStatus;
+  canReschedule: boolean;
+  canCancel: boolean;
+  visitId: number | null; // 접수 전이면 null
+};
+
+/** GET /visits/queue 의 items[], 접수 응답의 visit */
+export type QueueVisit = {
+  visitId: number;
+  appointmentId: number;
+  patientId: number;
+  patientName: string;
+  doctorId: number;
+  departmentName: string;
+  receptionNumber: number;
+  receptionCode: string;
+  status: VisitStatus;
+  checkedInAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+};
+
+export type CheckInResponse = {
+  appointmentId: number;
+  appointmentStatus: AppointmentStatus;
+  visit: QueueVisit;
+};
+
+export type VisitCancelResponse = {
+  visitId: number;
+  status: "CANCELLED";
+  appointmentId: number;
+  appointmentStatus: "CANCELLED";
+  cancelledAt: string;
+};
+
+export type ListResponse<T> = { items: T[] };

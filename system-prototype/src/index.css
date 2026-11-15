@@ -566,6 +566,40 @@
   font-size: 12px;
   line-height: 1.45;
 }
+.form-notice {
+  margin: 0 0 10px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  background: #eaf6ef;
+  color: var(--green);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.table-state {
+  margin: 0;
+  padding: 22px 12px;
+  text-align: center;
+  color: var(--muted, #6b7785);
+  font-size: 13px;
+}
+.table-state.error {
+  color: var(--red);
+}
+.inline-cancel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.inline-cancel input {
+  min-width: 180px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line, #d9e0e7);
+  border-radius: 7px;
+  font: inherit;
+  font-size: 13px;
+}
 .auth-links {
   display: flex;
   justify-content: center;
