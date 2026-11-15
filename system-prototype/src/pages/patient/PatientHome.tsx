@@ -5,7 +5,9 @@ import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../auth/AuthContext";
 import { patientApi } from "../../api/patient";
 import { useApi } from "../../api/useApi";
-import { dateKey, formatTime } from "../../utils/format";
+import { dateKey, formatDate, formatTime } from "../../utils/format";
+import { feeTypeLabel } from "../shared/Receipt";
+import { activePrescriptions, historySelection, loadHistory } from "./history";
 
 const WEEKDAY = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
@@ -96,32 +98,69 @@ export function PatientHome({ navigate }: { navigate: (s: string) => void }) {
         </div>
       </div>
       <h2 className="section-title">최근 이용 내역</h2>
-      <div className="summary-cards">
-        <button onClick={() => navigate("records")}>
-          <span className="summary-top">
-            <Icon name="file" /> 최근 진료
-          </span>
-          <b>감기 및 급성 인두염</b>
-          <small>2026.10.14 · 내과 이정훈</small>
-          <span className="link">상세 보기 →</span>
-        </button>
-        <button onClick={() => navigate("med-guide")}>
-          <span className="summary-top mint">
-            <Icon name="pill" /> 최근 처방
-          </span>
-          <b>아세트아미노펜정 외 1건</b>
-          <small>3일분 · 2026.10.14 처방</small>
-          <span className="link">복약 안내 보기 →</span>
-        </button>
-        <button onClick={() => navigate("receipts")}>
-          <span className="summary-top green">
-            <Icon name="receipt" /> 결제/영수증
-          </span>
-          <b>18,000원</b>
-          <small>초진 진찰료 · 결제완료</small>
-          <span className="link">영수증 보기 →</span>
-        </button>
-      </div>
+      <RecentCards navigate={navigate} />
     </>
+  );
+}
+
+/** 최근 진료·처방·결제 한 건씩 */
+async function loadRecent() {
+  const history = await loadHistory();
+  const latestVisit = history[0] ?? null;
+  const latestRx = activePrescriptions(history)[0] ?? null;
+  const paid = history.find((v) => v.paymentId !== null);
+  const [guide, receipt] = await Promise.all([
+    latestRx ? patientApi.medGuide(latestRx.prescriptionId) : null,
+    paid ? patientApi.receipt(paid.paymentId!) : null,
+  ]);
+  return { latestVisit, latestRx, guide, receipt };
+}
+
+function RecentCards({ navigate }: { navigate: (s: string) => void }) {
+  const { data, loading, error } = useApi(loadRecent, []);
+  if (!data) return <p className="table-state">{error || (loading ? "불러오는 중…" : "")}</p>;
+  const { latestVisit: v, latestRx: rx, guide, receipt } = data;
+  const longest = guide ? Math.max(...guide.items.map((i) => i.durationDays)) : 0;
+  return (
+    <div className="summary-cards">
+      <button onClick={() => navigate("records")}>
+        <span className="summary-top">
+          <Icon name="file" /> 최근 진료
+        </span>
+        <b>{v ? (v.detail.medicalRecord?.diagnosis ?? "진료기록 없음") : "진료 내역 없음"}</b>
+        <small>{v ? `${formatDate(v.visitDate)} · ${v.departmentName} ${v.doctorName}` : "진료를 받으면 여기에 표시됩니다"}</small>
+        <span className="link">상세 보기 →</span>
+      </button>
+      <button
+        onClick={() => {
+          if (rx) historySelection.setPrescription(rx.prescriptionId);
+          navigate("med-guide");
+        }}
+      >
+        <span className="summary-top mint">
+          <Icon name="pill" /> 최근 처방
+        </span>
+        <b>
+          {guide && guide.items.length
+            ? `${guide.items[0].name}${guide.items.length > 1 ? ` 외 ${guide.items.length - 1}건` : ""}`
+            : "처방 없음"}
+        </b>
+        <small>{rx && guide ? `${longest}일분 · ${formatDate(rx.prescribedAt)} 처방` : "처방을 받으면 여기에 표시됩니다"}</small>
+        <span className="link">복약 안내 보기 →</span>
+      </button>
+      <button
+        onClick={() => {
+          if (receipt) historySelection.setPayment(receipt.paymentId);
+          navigate("receipts");
+        }}
+      >
+        <span className="summary-top green">
+          <Icon name="receipt" /> 결제/영수증
+        </span>
+        <b>{receipt ? `${receipt.amount.toLocaleString("ko-KR")}원` : "결제 내역 없음"}</b>
+        <small>{receipt ? `${feeTypeLabel[receipt.feeType]} 진찰료 · 결제완료` : "수납 후 영수증을 볼 수 있습니다"}</small>
+        <span className="link">영수증 보기 →</span>
+      </button>
+    </div>
   );
 }

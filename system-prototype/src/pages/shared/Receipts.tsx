@@ -3,10 +3,11 @@ import { Badge } from "../../components/Badge";
 import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
 import { Receipt } from "./Receipt";
+import { sampleReceipt } from "../../mocks/data";
 
 export function Receipts() {
   const [open, setOpen] = useState(false);
-  if (open) return <Receipt close={() => setOpen(false)} />;
+  if (open) return <Receipt receipt={sampleReceipt} close={() => setOpen(false)} />;
   return (
     <>
       <PageHeader

@@ -24,6 +24,8 @@ type AuthValue = {
   /** 실패하면 ApiError를 던진다 (예: code가 INVALID_CREDENTIALS) */
   login: (loginId: string, password: string) => Promise<void>;
   logout: () => void;
+  /** 내 정보 수정 후 화면에 보이는 이름 등을 바꾼다 */
+  updateUser: (patch: Partial<LoginUser>) => void;
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -57,6 +59,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(next);
   }, []);
 
+  const updateUser = useCallback((patch: Partial<LoginUser>) => {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, user: { ...prev.user, ...patch } };
+      saveSession(next);
+      return next;
+    });
+  }, []);
+
   // API가 401을 받으면 (토큰 만료 등) 자동으로 로그아웃
   useEffect(() => {
     window.addEventListener(AUTH_EXPIRED_EVENT, logout);
@@ -77,8 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       doctorProfile: session?.doctorProfile ?? null,
       login,
       logout,
+      updateUser,
     }),
-    [session, login, logout],
+    [session, login, logout, updateUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

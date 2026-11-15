@@ -1,3 +1,5 @@
+import type { Receipt } from "../api/types";
+
 export const reservationRows = [
   ["R20261111-042", "내과", "이정훈", "2026.11.11 (수)", "10:30", "예약완료"],
   ["R20261014-018", "내과", "이정훈", "2026.10.14 (수)", "09:30", "접수완료"],
@@ -31,3 +33,19 @@ export const adminCards = [
   ["병용금기 수", "84건", "warning", "interactions"],
   ["연령금기 수", "29건", "warning", "age-rules"],
 ];
+
+/** 수납 화면(아직 API 미연동)에서 영수증 문서 모양을 보여주는 예시 */
+export const sampleReceipt: Receipt = {
+  receiptNumber: 92,
+  paymentId: 92,
+  feeId: 1,
+  feeType: "FIRST_VISIT",
+  amount: 18000,
+  currency: "KRW",
+  paidAt: "2026-10-14T10:05:00+09:00",
+  patientId: 100001,
+  patientName: "홍길동",
+  visitDate: "2026-10-14",
+  departmentName: "내과",
+  doctorName: "이정훈",
+};
