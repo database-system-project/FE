@@ -5,7 +5,7 @@ import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
 import { TableState } from "../../components/TableState";
 import { ApiError } from "../../api/client";
-import { doctorApi, medicationCompany, medicationName, rememberMedications } from "../../api/doctor";
+import { doctorApi, medicationLabel } from "../../api/doctor";
 import type { DoctorVisitDetail, DoseTiming, DurWarning, Medication, PrescriptionItem } from "../../api/types";
 import { ageOf, formatDate, formatTime, medicationEndDate, timingLabel } from "../../utils/format";
 import { NoCurrentVisit } from "./NoCurrentVisit";
@@ -108,7 +108,6 @@ function PrescriptionForm({
     setSearchError("");
     try {
       const res = await doctorApi.medications(term);
-      rememberMedications(res.items);
       setResults(res.items);
     } catch (err) {
       setSearchError(err instanceof ApiError ? err.message : "약품 검색 중 문제가 발생했습니다.");
@@ -244,7 +243,7 @@ function PrescriptionForm({
     );
 
   const inDraft = (id: number) => drafts.some((d) => d.medicationId === id);
-  const draftName = (id: number) => drafts.find((d) => d.medicationId === id)?.name ?? medicationName(id);
+  const draftName = (id: number) => drafts.find((d) => d.medicationId === id)?.name ?? medicationLabel(id);
 
   return (
     <>
@@ -431,7 +430,7 @@ function PrescriptionForm({
                     <b>
                       처방 #{p.prescriptionId} · {formatTime(p.prescribedAt)}
                     </b>
-                    <small>{p.items.map((it) => medicationName(it.medicationId)).join(", ")}</small>
+                    <small>{p.items.map((it) => medicationLabel(it.medicationId)).join(", ")}</small>
                   </div>
                   {p.status === "ACTIVE" ? (
                     <Button variant="danger-ghost" disabled={busy} onClick={() => void cancelPrescription(p.prescriptionId)}>
@@ -459,8 +458,7 @@ function PrescriptionForm({
                 <Icon name="pill" />
               </span>
               <div>
-                <h3>{medicationName(m.medicationId)}</h3>
-                {medicationCompany(m.medicationId) && <p>{medicationCompany(m.medicationId)}</p>}
+                <h3>{medicationLabel(m.medicationId)}</h3>
                 <dl>
                   <div>
                     <dt>처방일</dt>

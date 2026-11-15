@@ -57,35 +57,8 @@ export const doctorApi = {
     api.post<{ prescriptionId: number; status: "CANCELLED" }>(`/doctor/prescriptions/${prescriptionId}/cancel`),
 };
 
-// ── 약품명 기억 ──────────────────────────────
-// 진료 상세·금기 경고에는 약품 ID만 오고 이름이 없다 (BE에 이름 추가 요청 중).
-// 검색으로 본 약품의 이름을 기억해 두었다가 같은 ID를 이름으로 보여준다.
-
-const NAMES_KEY = "oncare.medicationNames";
-const names = new Map<number, { name: string; companyName: string }>(readNames());
-
-function readNames(): [number, { name: string; companyName: string }][] {
-  try {
-    return JSON.parse(sessionStorage.getItem(NAMES_KEY) ?? "[]");
-  } catch {
-    return [];
-  }
-}
-
-export function rememberMedications(items: Medication[]) {
-  items.forEach((m) => names.set(m.medicationId, { name: m.name, companyName: m.companyName }));
-  try {
-    sessionStorage.setItem(NAMES_KEY, JSON.stringify([...names]));
-  } catch {
-    /* 저장소를 못 쓰는 환경 */
-  }
-}
-
-/** 약품 ID → 화면 표시 이름. 모르는 약이면 "약품 #ID" */
-export function medicationName(id: number) {
-  return names.get(id)?.name ?? `약품 #${id}`;
-}
-
-export function medicationCompany(id: number) {
-  return names.get(id)?.companyName ?? "";
+// 진료 상세·금기 경고에는 약품 ID만 온다 (BE에 약품명 필드 추가 요청 예정).
+// 그때까지는 ID로 표시한다.
+export function medicationLabel(id: number) {
+  return `약품 #${id}`;
 }

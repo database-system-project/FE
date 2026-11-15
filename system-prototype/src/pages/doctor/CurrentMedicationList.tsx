@@ -1,6 +1,6 @@
 import { Icon } from "../../components/Icon";
 import { Badge } from "../../components/Badge";
-import { medicationName } from "../../api/doctor";
+import { medicationLabel } from "../../api/doctor";
 import type { CurrentMedication } from "../../api/types";
 import { formatDate, medicationEndDate } from "../../utils/format";
 
@@ -19,7 +19,7 @@ export function CurrentMedicationList({ items }: { items: CurrentMedication[] })
         <div className="active-med" key={`${m.prescriptionId}-${m.medicationId}`}>
           <Icon name="pill" size={18} />
           <span>
-            <b>{medicationName(m.medicationId)}</b>
+            <b>{medicationLabel(m.medicationId)}</b>
             <small>
               {formatDate(m.prescribedAt).slice(5)} 처방 · {m.durationDays}일분 ·{" "}
               {formatDate(medicationEndDate(m.prescribedAt, m.durationDays)).slice(5)} 종료 예정
