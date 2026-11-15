@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Icon } from "../../components/Icon";
 import { Badge } from "../../components/Badge";
 import { Button } from "../../components/Button";
@@ -42,9 +42,6 @@ function RecordForm({
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmComplete, setConfirmComplete] = useState(false);
 
-  // 서버에서 기록을 다시 받으면 입력란도 맞춘다
-  useEffect(() => setForm(saved), [medicalRecord?.updatedAt]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const changed = fields.filter((f) => form[f].trim() !== saved[f]);
   const dirty = !medicalRecord || changed.length > 0;
   const complete = fields.every((f) => form[f].trim() !== "");
@@ -69,8 +66,10 @@ function RecordForm({
       } else {
         await doctorApi.updateRecord(visit.visitId, Object.fromEntries(changed.map((f) => [f, form[f].trim()])));
       }
-      setNotice({ ok: true, text: "진료기록을 저장했습니다." });
+      // 입력란은 사용자가 쓴 값을 유지하고(앞뒤 공백만 정리), 저장 상태는 다시 불러온 기록으로 판단한다
+      setForm((f) => ({ symptoms: f.symptoms.trim(), diagnosis: f.diagnosis.trim(), treatmentNote: f.treatmentNote.trim() }));
       await reload();
+      setNotice({ ok: true, text: "진료기록을 저장했습니다." });
       return true;
     } catch (e) {
       setNotice({ ok: false, text: recordErrorText(e) });

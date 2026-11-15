@@ -3224,10 +3224,21 @@ tbody tr:hover {
   color: #8290a0;
   font-size: 12px;
 }
-.dose-grid .unit-input {
-  width: 52px;
-  flex: none;
+/* 1회 투약량 칸 안쪽 오른쪽에 붙는 투약 단위 입력 (기존 "일" 표시와 같은 위치) */
+.dose-grid label > div:has(.unit-input) > input:first-child {
+  padding-right: 44px;
+}
+.dose-grid label > div .unit-input {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 36px;
+  height: 25px;
+  padding: 0 4px;
+  border-color: transparent;
+  background: #f3f6f9;
   text-align: center;
+  color: #5d6f82;
 }
 .rx-history h3 {
   margin: 0 0 2px;
