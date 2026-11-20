@@ -10,7 +10,7 @@ import { Reservations } from "./pages/patient/Reservations";
 import { Records } from "./pages/patient/Records";
 import { MedGuide } from "./pages/patient/MedGuide";
 import { PatientInfo } from "./pages/patient/PatientInfo";
-import { Receipts } from "./pages/shared/Receipts";
+import { PaymentHistory } from "./pages/cashier/PaymentHistory";
 import { MyReceipts } from "./pages/patient/MyReceipts";
 import { DeskDashboard } from "./pages/desk/DeskDashboard";
 import { DeskReservations } from "./pages/desk/DeskReservations";
@@ -74,7 +74,7 @@ export default function App() {
       case "cashier-home":
         return <CashierHome navigate={setScreen} />;
       case "cashier-history":
-        return <Receipts />;
+        return <PaymentHistory />;
       case "payment":
         return <Payment navigate={setScreen} />;
       case "admin-home":
