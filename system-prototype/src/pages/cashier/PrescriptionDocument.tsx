@@ -1,7 +1,18 @@
 import { Icon } from "../../components/Icon";
 import { Button } from "../../components/Button";
+import type { PrescriptionPrint, PrintItem } from "../../api/types";
+import { formatDate, timingLabel } from "../../utils/format";
 
-export function PrescriptionDocument({ close }: { close: () => void }) {
+// 백엔드가 약품 이름을 아직 안 줘서, 이름이 없으면 약품 번호로 보여준다 (이름 추가 요청함)
+const medicationLabel = (item: PrintItem) => item.medicationName ?? `약품 #${item.medicationId}`;
+const intervalLabel = (days: number) => (days === 1 ? "매일" : `${days}일마다`);
+
+/** 처방전 출력 문서. GET /billing/visits/{visitId}/prescription-print 응답을 그대로 받는다 */
+export function PrescriptionDocument({ data, close }: { data: PrescriptionPrint; close: () => void }) {
+  const items = data.prescriptions.flatMap((p) => p.items);
+  const first = data.prescriptions[0];
+  const withDirections = items.filter((item) => item.instructions.trim());
+
   return (
     <div className="document-page prescription-doc">
       <div className="doc-brand">
@@ -14,24 +25,32 @@ export function PrescriptionDocument({ close }: { close: () => void }) {
         </span>
       </div>
       <h1>처 방 전</h1>
-      <p className="doc-number">처방번호 RX20261111-0031</p>
+      <p className="doc-number">처방번호 {data.prescriptions.map((p) => p.prescriptionId).join(", ")}</p>
       <div className="doc-rule" />
       <dl className="doc-details two">
         <div>
           <dt>환자명</dt>
-          <dd>오지호</dd>
+          <dd>{data.patient.name}</dd>
         </div>
         <div>
           <dt>처방일</dt>
-          <dd>2026.11.11</dd>
+          <dd>{formatDate(first?.prescribedAt)}</dd>
+        </div>
+        <div>
+          <dt>환자번호</dt>
+          <dd>{data.patient.patientId}</dd>
+        </div>
+        <div>
+          <dt>생년월일</dt>
+          <dd>{formatDate(data.patient.birthDate)}</dd>
         </div>
         <div>
           <dt>진료과</dt>
-          <dd>내과</dd>
+          <dd>{data.doctor.departmentName}</dd>
         </div>
         <div>
           <dt>담당 의사</dt>
-          <dd>이정훈 의사</dd>
+          <dd>{data.doctor.name} 의사</dd>
         </div>
       </dl>
       <table className="doc-table">
@@ -46,30 +65,33 @@ export function PrescriptionDocument({ close }: { close: () => void }) {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>아세트아미노펜정 500mg</td>
-            <td>1정</td>
-            <td>3회</td>
-            <td>매일</td>
-            <td>3일</td>
-            <td>식후</td>
-          </tr>
-          <tr>
-            <td>레보세티리진정 5mg</td>
-            <td>1정</td>
-            <td>1회</td>
-            <td>매일</td>
-            <td>3일</td>
-            <td>취침 전</td>
-          </tr>
+          {items.map((item, i) => (
+            <tr key={`${item.medicationId}-${i}`}>
+              <td>{medicationLabel(item)}</td>
+              <td>
+                {item.dosePerIntake}
+                {item.doseUnit}
+              </td>
+              <td>{item.timesPerDay}회</td>
+              <td>{intervalLabel(item.intervalDays)}</td>
+              <td>{item.durationDays}일</td>
+              <td>{timingLabel[item.timing]}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
-      <div className="directions-box">
-        <b>복용 방법</b>
-        <p>충분한 물과 함께 복용하십시오. 졸음이 올 수 있으므로 운전 시 주의하세요.</p>
-      </div>
+      {withDirections.length > 0 && (
+        <div className="directions-box">
+          <b>복용 방법</b>
+          {withDirections.map((item, i) => (
+            <p key={`${item.medicationId}-${i}`}>
+              {medicationLabel(item)}: {item.instructions}
+            </p>
+          ))}
+        </div>
+      )}
       <div className="doctor-sign">
-        처방의사 <b>이정훈</b> (서명)
+        처방의사 <b>{data.doctor.name}</b> (서명)
       </div>
       <div className="document-actions">
         <Button variant="outline" onClick={close}>

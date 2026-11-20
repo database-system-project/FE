@@ -6,7 +6,12 @@ import type {
   BookingDepartment,
   BookingDoctor,
   ListResponse,
+  MedGuide,
   PatientAppointment,
+  PatientProfile,
+  PatientVisit,
+  PatientVisitDetail,
+  Receipt,
   RescheduleResponse,
 } from "./types";
 
@@ -36,4 +41,23 @@ export const patientApi = {
 
   /** 예약 취소 */
   cancel: (appointmentId: number) => api.post<AppointmentCancelResponse>(`/appointments/${appointmentId}/cancel`),
+
+  /** 내 기본정보 수정. 바꾼 칸(name, phone)만 보낸다 */
+  updateProfile: (body: { name?: string; phone?: string }) => api.patch<PatientProfile>("/me/profile", body),
+
+  /** 비밀번호 변경. 성공하면 기존 토큰이 무효가 되어 다시 로그인해야 한다 */
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.patch<{ changed: true }>("/me/password", { currentPassword, newPassword }),
+
+  /** 내 진료 이용내역 (진료 완료만, 최신순) */
+  visits: () => api.get<ListResponse<PatientVisit>>("/me/visits"),
+
+  /** 내 진료기록 상세 */
+  visit: (visitId: number) => api.get<PatientVisitDetail>(`/me/visits/${visitId}`),
+
+  /** 처방·복약 안내 */
+  medGuide: (prescriptionId: number) => api.get<MedGuide>(`/me/prescriptions/${prescriptionId}`),
+
+  /** 전자영수증 (환자 본인 것만) */
+  receipt: (paymentId: number) => api.get<Receipt>(`/payments/${paymentId}/receipt`),
 };
