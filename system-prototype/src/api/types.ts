@@ -363,3 +363,42 @@ export type Receipt = {
   departmentName: string;
   doctorName: string;
 };
+
+// ── 수납 ──────────────────────────────
+
+/** 수납 금액 정보. 결제 전에는 지금 적용될 진찰료, 결제 후에는 결제한 금액이 온다 */
+export type BillingQuote = {
+  visitId: number;
+  paymentStatus: PaymentStatus;
+  paymentId: number | null;
+  feeId: number;
+  feeType: FeeType;
+  amount: number;
+  currency: "KRW";
+  paidAt?: string; // 결제 후에만
+};
+
+/** GET /billing/visits 의 items[] (진료 완료된 접수) */
+export type BillingVisit = BillingQuote & {
+  patientId: number;
+  patientName: string;
+  doctorName: string;
+  departmentName: string;
+  completedAt: string;
+};
+
+/** POST /billing/visits/{visitId}/payments 응답 */
+export type PaymentResult = BillingQuote & { paymentStatus: "PAID"; paymentId: number; paidAt: string };
+
+/** 처방전 품목. 백엔드가 약품 이름을 주면 medicationName으로 받는다 */
+export type PrintItem = PrescriptionItem & { medicationName?: string };
+
+/** GET /billing/visits/{visitId}/prescription-print */
+export type PrescriptionPrint = {
+  visitId: number;
+  paymentId: number;
+  patient: { patientId: number; name: string; birthDate: string; gender: "M" | "F"; phone: string };
+  doctor: { doctorId: number; name: string; departmentName: string };
+  prescriptions: { prescriptionId: number; visitId: number; status: PrescriptionStatus; prescribedAt: string; items: PrintItem[] }[];
+  canPrint: boolean;
+};
