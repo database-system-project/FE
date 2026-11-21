@@ -297,3 +297,108 @@ export type PatientAppointment = {
 export type AppointmentSlot = { scheduleId: number; startsAt: string };
 export type RescheduleResponse = { previousAppointmentId: number; newAppointment: PatientAppointment };
 export type AppointmentCancelResponse = { appointmentId: number; status: "CANCELLED"; cancelledAt: string };
+
+// ── 환자 내 정보·이용내역 ──────────────────────────────
+
+/** GET /me 의 profile (환자) · PATCH /me/profile 응답 */
+export type PatientProfile = {
+  patientId: number;
+  name: string;
+  birthDate: string;
+  gender: "M" | "F";
+  phone: string;
+};
+
+export type PaymentStatus = "UNPAID" | "PAID";
+
+/** GET /me/visits 의 items[] (진료 완료만, 최신순) */
+export type PatientVisit = {
+  visitId: number;
+  visitDate: string;
+  departmentName: string;
+  doctorName: string;
+  status: "COMPLETED";
+  paymentStatus: PaymentStatus;
+  paymentId: number | null;
+};
+
+/** GET /me/visits/{visitId} */
+export type PatientVisitDetail = {
+  visit: QueueVisit;
+  medicalRecord: MedicalRecord | null;
+  prescriptions: { prescriptionId: number; status: PrescriptionStatus; prescribedAt: string }[];
+  paymentStatus: PaymentStatus;
+  paymentId: number | null;
+};
+
+/** GET /me/prescriptions/{prescriptionId} 의 items[]: 처방 품목 + 약품 안내 */
+export type MedGuideItem = PrescriptionItem & {
+  name: string;
+  efficacy: string | null;
+  usage: string | null;
+  precautions: string | null;
+  storage: string | null;
+};
+
+/** GET /me/prescriptions/{prescriptionId} */
+export type MedGuide = {
+  prescriptionId: number;
+  status: PrescriptionStatus;
+  prescribedAt: string;
+  items: MedGuideItem[];
+};
+
+/** GET /payments/{paymentId}/receipt */
+export type Receipt = {
+  receiptNumber: number;
+  paymentId: number;
+  feeId: number;
+  feeType: FeeType;
+  amount: number;
+  currency: "KRW";
+  paidAt: string;
+  patientId: number;
+  patientName: string;
+  visitDate: string;
+  departmentName: string;
+  doctorName: string;
+};
+
+// ── 수납 ──────────────────────────────
+
+/** 수납 금액 정보. 결제 전에는 지금 적용될 진찰료, 결제 후에는 결제한 금액이 온다 */
+export type BillingQuote = {
+  visitId: number;
+  paymentStatus: PaymentStatus;
+  paymentId: number | null;
+  feeId: number;
+  feeType: FeeType;
+  amount: number;
+  currency: "KRW";
+  paidAt?: string; // 결제 후에만
+};
+
+/** GET /billing/visits 의 items[] (진료 완료된 접수) */
+export type BillingVisit = BillingQuote & {
+  patientId: number;
+  patientName: string;
+  doctorName: string;
+  departmentName: string;
+  completedAt: string;
+};
+
+/** POST /billing/visits/{visitId}/payments 응답 */
+export type PaymentResult = BillingQuote & { paymentStatus: "PAID"; paymentId: number; paidAt: string };
+
+/** 처방전 품목. 백엔드가 약품 이름을 주면 medicationName으로 받는다 */
+export type PrintItem = PrescriptionItem & { medicationName?: string };
+
+/** GET /billing/visits/{visitId}/prescription-print */
+export type PrescriptionPrint = {
+  visitId: number;
+  paymentId: number;
+  patient: { patientId: number; name: string; birthDate: string; gender: "M" | "F"; phone: string };
+  doctor: { doctorId: number; name: string; departmentName: string };
+  prescriptions: { prescriptionId: number; visitId: number; status: PrescriptionStatus; prescribedAt: string; items: PrintItem[] }[];
+  canPrint: boolean;
+};

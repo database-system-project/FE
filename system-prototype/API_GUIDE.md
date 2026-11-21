@@ -50,7 +50,7 @@ src/
      checkIn: (appointmentId: number) => api.post<CheckInResponse>(`/reception/appointments/${appointmentId}/check-in`),
    };
    ```
-3. 화면에서는 `fetch`를 직접 쓰지 않고 이 함수를 부릅니다. 목데이터(`mocks/data.ts`)는 연동이 끝난 화면부터 지웁니다.
+3. 화면에서는 `fetch`를 직접 쓰지 않고 이 함수를 부릅니다. (모든 화면이 연동되어 목데이터 파일은 지웠습니다.)
 
 ## 규칙
 
