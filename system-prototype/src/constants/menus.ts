@@ -14,6 +14,7 @@ export const menus: Record<Role, { id: string; label: string; icon: string }[]> 
     { id: "desk-home", label: "원무 대시보드", icon: "home" },
     { id: "desk-reservations", label: "오늘 예약", icon: "calendar" },
     { id: "waiting", label: "접수·대기 관리", icon: "users" },
+    { id: "patient-correction", label: "환자 정보 정정", icon: "shield" },
   ],
   doctor: [
     { id: "doctor-home", label: "진료 대시보드", icon: "home" },

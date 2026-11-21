@@ -3,8 +3,10 @@ import type {
   AppointmentStatus,
   CheckInResponse,
   ListResponse,
+  PatientProfile,
   QueueVisit,
   ReceptionAppointment,
+  StaffPatientSummary,
   VisitCancelResponse,
   VisitStatus,
 } from "./types";
@@ -27,4 +29,15 @@ export const receptionApi = {
   /** 오늘 대기열. status를 안 주면 WAITING·IN_PROGRESS만 온다 */
   queue: (params: { doctorId?: number; status?: VisitStatus } = {}) =>
     api.get<ListResponse<QueueVisit>>("/visits/queue", params),
+
+  /** 정정할 환자 찾기. 이름·생년월일·전화번호 중 하나 이상 */
+  searchPatients: (params: { name?: string; birthDate?: string; phone?: string }) =>
+    api.get<ListResponse<StaffPatientSummary>>("/staff/patients", params),
+
+  /** 정정 대상 환자 상세 */
+  patient: (patientId: number) => api.get<PatientProfile>(`/staff/patients/${patientId}`),
+
+  /** 생년월일·성별 정정. 바꾸기 전 값은 서버가 patient_demographic_audit에 남긴다 */
+  correctDemographics: (patientId: number, body: { birthDate?: string; gender?: "M" | "F" }) =>
+    api.patch<PatientProfile>(`/staff/patients/${patientId}/demographics`, body),
 };

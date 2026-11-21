@@ -243,7 +243,12 @@ function PrescriptionForm({
     );
 
   const inDraft = (id: number) => drafts.some((d) => d.medicationId === id);
-  const draftName = (id: number) => drafts.find((d) => d.medicationId === id)?.name ?? medicationLabel(id);
+  // 경고창에 띄울 약품명: 이번 처방 약 → 복용 중인 약 → 이번 진료의 기존 처방 순서로 찾는다
+  const knownNames = new Map<number, string>();
+  prescriptions.forEach((p) => p.items.forEach((it) => it.medicationName && knownNames.set(it.medicationId, it.medicationName)));
+  currentMedications.forEach((m) => m.medicationName && knownNames.set(m.medicationId, m.medicationName));
+  drafts.forEach((d) => knownNames.set(d.medicationId, d.name));
+  const draftName = (id: number) => medicationLabel(id, knownNames.get(id));
 
   return (
     <>
@@ -430,7 +435,7 @@ function PrescriptionForm({
                     <b>
                       처방 #{p.prescriptionId} · {formatTime(p.prescribedAt)}
                     </b>
-                    <small>{p.items.map((it) => medicationLabel(it.medicationId)).join(", ")}</small>
+                    <small>{p.items.map((it) => medicationLabel(it.medicationId, it.medicationName)).join(", ")}</small>
                   </div>
                   {p.status === "ACTIVE" ? (
                     <Button variant="danger-ghost" disabled={busy} onClick={() => void cancelPrescription(p.prescriptionId)}>
@@ -458,7 +463,7 @@ function PrescriptionForm({
                 <Icon name="pill" />
               </span>
               <div>
-                <h3>{medicationLabel(m.medicationId)}</h3>
+                <h3>{medicationLabel(m.medicationId, m.medicationName)}</h3>
                 <dl>
                   <div>
                     <dt>처방일</dt>
@@ -494,7 +499,8 @@ function PrescriptionForm({
             </div>
             <span className="warning-label">DUR SAFETY ALERT</span>
             <h2>금기 약품이 {warnings.length}건 확인되었습니다.</h2>
-            <p>약을 바꾸거나, 경고마다 그대로 처방해야 하는 임상적 사유를 입력하세요.</p>
+            <p className="override-question">그래도 처방하시겠습니까?</p>
+            <p>약을 바꾸려면 [약 변경]을, 그대로 처방하려면 경고마다 처방 사유를 입력하세요.</p>
             {modalNotice && <p className="form-error">{modalNotice}</p>}
             <div className="warning-list">
               {warnings.map((w) => (
@@ -518,7 +524,7 @@ function PrescriptionForm({
                 disabled={busy || warnings.some((w) => !(reasons[w.warningId] ?? "").trim())}
                 onClick={() => void confirmOverride()}
               >
-                {busy ? "저장 중…" : "사유 입력 후 그대로 처방"}
+                {busy ? "저장 중…" : "네, 사유를 남기고 처방"}
               </Button>
             </div>
             <p className="override-note">
@@ -552,6 +558,11 @@ function WarningItem({
   // 병용금기는 한쪽이 이번 처방 약, 다른 쪽이 복용 중인 약일 수 있다
   const prescribed = isInteraction && !inDraft(a) ? b : a;
   const other = prescribed === a ? b : a;
+  // 서버가 준 약품명을 먼저 쓴다
+  const label = (id: number) => {
+    const index = warning.medicationIds.indexOf(id);
+    return warning.medicationNames?.[index] || name(id);
+  };
   return (
     <div className="warning-item">
       <Badge tone="red">{isInteraction ? "병용금기" : "연령금기"}</Badge>
@@ -559,12 +570,12 @@ function WarningItem({
         <div className="conflict-box">
           <div>
             <small>현재 처방 약</small>
-            <b>{name(prescribed)}</b>
+            <b>{label(prescribed)}</b>
           </div>
           <span>+</span>
           <div>
             <small>{inDraft(other) ? "함께 처방한 약" : "현재 복용 중인 약"}</small>
-            <b>{name(other)}</b>
+            <b>{label(other)}</b>
           </div>
         </div>
       ) : (
@@ -575,7 +586,7 @@ function WarningItem({
           </div>
           <div>
             <small>처방 약품</small>
-            <b>{name(a)}</b>
+            <b>{label(a)}</b>
           </div>
         </div>
       )}

@@ -154,6 +154,8 @@ export type MedicalRecordInput = {
 export type CurrentMedication = {
   prescriptionId: number;
   medicationId: number;
+  /** 서버가 약품명을 같이 준다 (없으면 번호로 표시) */
+  medicationName?: string | null;
   prescribedAt: string;
   durationDays: number;
 };
@@ -174,7 +176,7 @@ export type VisitPrescription = {
   visitId: number;
   status: PrescriptionStatus;
   prescribedAt: string;
-  items: PrescriptionItem[];
+  items: (PrescriptionItem & { medicationName?: string | null })[];
 };
 
 /** GET /doctor/visits/{visitId} */
@@ -212,6 +214,8 @@ export type DurWarning = {
   type: WarningType;
   ruleKey: { medicationId?: number; ageSeq?: number; medicationAId?: number; medicationBId?: number };
   medicationIds: number[];
+  /** medicationIds와 같은 순서의 약품명 */
+  medicationNames?: (string | null)[];
   message: string;
 };
 
@@ -401,4 +405,14 @@ export type PrescriptionPrint = {
   doctor: { doctorId: number; name: string; departmentName: string };
   prescriptions: { prescriptionId: number; visitId: number; status: PrescriptionStatus; prescribedAt: string; items: PrintItem[] }[];
   canPrint: boolean;
+};
+
+// ── 원무: 환자 정보 정정 ──────────────────
+/** GET /staff/patients 의 items[] (전화번호는 가운데를 가려서 온다) */
+export type StaffPatientSummary = {
+  patientId: number;
+  name: string;
+  birthDate: string;
+  gender: "M" | "F";
+  displayPhone: string;
 };

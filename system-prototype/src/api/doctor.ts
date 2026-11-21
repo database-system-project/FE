@@ -59,6 +59,7 @@ export const doctorApi = {
 
 // 진료 상세·금기 경고에는 약품 ID만 온다 (BE에 약품명 필드 추가 요청 예정).
 // 그때까지는 ID로 표시한다.
-export function medicationLabel(id: number) {
-  return `약품 #${id}`;
+/** 약품명이 있으면 이름, 없으면 번호로 표시한다 */
+export function medicationLabel(id: number, name?: string | null) {
+  return name || `약품 #${id}`;
 }
