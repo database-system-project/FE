@@ -494,7 +494,8 @@ function PrescriptionForm({
             </div>
             <span className="warning-label">DUR SAFETY ALERT</span>
             <h2>금기 약품이 {warnings.length}건 확인되었습니다.</h2>
-            <p>약을 바꾸거나, 경고마다 그대로 처방해야 하는 임상적 사유를 입력하세요.</p>
+            <p className="override-question">그래도 처방하시겠습니까?</p>
+            <p>약을 바꾸려면 [약 변경]을, 그대로 처방하려면 경고마다 처방 사유를 입력하세요.</p>
             {modalNotice && <p className="form-error">{modalNotice}</p>}
             <div className="warning-list">
               {warnings.map((w) => (
@@ -518,7 +519,7 @@ function PrescriptionForm({
                 disabled={busy || warnings.some((w) => !(reasons[w.warningId] ?? "").trim())}
                 onClick={() => void confirmOverride()}
               >
-                {busy ? "저장 중…" : "사유 입력 후 그대로 처방"}
+                {busy ? "저장 중…" : "네, 사유를 남기고 처방"}
               </Button>
             </div>
             <p className="override-note">

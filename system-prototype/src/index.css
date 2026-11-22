@@ -3317,3 +3317,61 @@ td.ellipsis-cell {
   max-width: 460px;
   margin-bottom: 14px;
 }
+
+/* 원무 · 환자 정보 정정 */
+.toolbar .toolbar-input {
+  height: 39px;
+  width: 160px;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+  background: #fff;
+  color: #2f4257;
+  padding: 0 13px;
+  outline: none;
+  font-size: 13px;
+}
+.correction-layout {
+  margin-top: 16px;
+}
+.correction-result .correction-diff {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+.correction-diff div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f4f8fc;
+}
+.correction-diff dt {
+  width: 64px;
+  color: #79889a;
+  font-size: 12px;
+}
+.correction-diff dd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+}
+.correction-diff s {
+  color: #9aa6b4;
+}
+.correction-diff b {
+  color: #1d6fd8;
+}
+@media (max-width: 760px) {
+  .toolbar .toolbar-input {
+    width: 100%;
+  }
+}
+.warning-modal > p.override-question {
+  margin: 4px 0 6px;
+  color: #d93f45;
+  font-size: 16px;
+  font-weight: 800;
+}

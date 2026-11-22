@@ -15,6 +15,7 @@ import { MyReceipts } from "./pages/patient/MyReceipts";
 import { DeskDashboard } from "./pages/desk/DeskDashboard";
 import { DeskReservations } from "./pages/desk/DeskReservations";
 import { Waiting } from "./pages/desk/Waiting";
+import { PatientCorrection } from "./pages/desk/PatientCorrection";
 import { DoctorDashboard } from "./pages/doctor/DoctorDashboard";
 import { MedicalRecord } from "./pages/doctor/MedicalRecord";
 import { Prescription } from "./pages/doctor/Prescription";
@@ -62,6 +63,8 @@ export default function App() {
         return <DeskReservations navigate={setScreen} />;
       case "waiting":
         return <Waiting />;
+      case "patient-correction":
+        return <PatientCorrection />;
       case "doctor-home":
         return <DoctorDashboard navigate={setScreen} />;
       case "medical-record":

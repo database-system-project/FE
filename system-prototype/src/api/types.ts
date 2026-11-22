@@ -415,3 +415,13 @@ export type PrescriptionPrint = {
   prescriptions: { prescriptionId: number; visitId: number; status: PrescriptionStatus; prescribedAt: string; items: PrintItem[] }[];
   canPrint: boolean;
 };
+
+// ── 원무: 환자 정보 정정 ──────────────────
+/** GET /staff/patients 의 items[] (전화번호는 가운데를 가려서 온다) */
+export type StaffPatientSummary = {
+  patientId: number;
+  name: string;
+  birthDate: string;
+  gender: "M" | "F";
+  displayPhone: string;
+};
