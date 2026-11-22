@@ -430,7 +430,7 @@ function PrescriptionForm({
                     <b>
                       처방 #{p.prescriptionId} · {formatTime(p.prescribedAt)}
                     </b>
-                    <small>{p.items.map((it) => medicationLabel(it.medicationId)).join(", ")}</small>
+                    <small>{p.items.map((it) => medicationLabel(it.medicationId, it.medicationName)).join(", ")}</small>
                   </div>
                   {p.status === "ACTIVE" ? (
                     <Button variant="danger-ghost" disabled={busy} onClick={() => void cancelPrescription(p.prescriptionId)}>
@@ -458,7 +458,7 @@ function PrescriptionForm({
                 <Icon name="pill" />
               </span>
               <div>
-                <h3>{medicationLabel(m.medicationId)}</h3>
+                <h3>{medicationLabel(m.medicationId, m.medicationName)}</h3>
                 <dl>
                   <div>
                     <dt>처방일</dt>
@@ -549,6 +549,8 @@ function WarningItem({
 }) {
   const isInteraction = warning.type === "INTERACTION";
   const [a, b] = warning.medicationIds;
+  // 경고에 담겨 온 약품명을 먼저 쓰고, 없으면 처방 초안의 이름으로 표시한다
+  const label = (id: number) => warning.medicationNames?.[warning.medicationIds.indexOf(id)] || name(id);
   // 병용금기는 한쪽이 이번 처방 약, 다른 쪽이 복용 중인 약일 수 있다
   const prescribed = isInteraction && !inDraft(a) ? b : a;
   const other = prescribed === a ? b : a;
@@ -559,12 +561,12 @@ function WarningItem({
         <div className="conflict-box">
           <div>
             <small>현재 처방 약</small>
-            <b>{name(prescribed)}</b>
+            <b>{label(prescribed)}</b>
           </div>
           <span>+</span>
           <div>
             <small>{inDraft(other) ? "함께 처방한 약" : "현재 복용 중인 약"}</small>
-            <b>{name(other)}</b>
+            <b>{label(other)}</b>
           </div>
         </div>
       ) : (
@@ -575,7 +577,7 @@ function WarningItem({
           </div>
           <div>
             <small>처방 약품</small>
-            <b>{name(a)}</b>
+            <b>{label(a)}</b>
           </div>
         </div>
       )}
