@@ -7,7 +7,7 @@ import { PageHeader } from "../../components/PageHeader";
 import { TableState } from "../../components/TableState";
 import { adminApi } from "../../api/admin";
 import { useApi } from "../../api/useApi";
-import type { AdminDoctor, AdminSchedule, Department, StaffAccount } from "../../api/types";
+import type { AdminDoctor, AdminSchedule, Department } from "../../api/types";
 import { dateKey, formatDate } from "../../utils/format";
 import { ActiveBadge, ActiveCheckbox, changedFields, errorText, FormModal } from "./shared";
 
@@ -16,9 +16,8 @@ const scheduleErrors = {
   SCHEDULE_HAS_APPOINTMENTS: "예약(취소 이력 포함)이 연결된 일정은 날짜를 바꾸거나 휴진으로 바꾸거나 삭제할 수 없습니다.",
 };
 const doctorErrors = {
-  ACCOUNT_ALREADY_LINKED: "이미 다른 의사에 연결된 계정입니다.",
-  INVALID_DOCTOR_ACCOUNT: "의사(DOCTOR) 역할 계정만 연결할 수 있습니다.",
-  NOT_FOUND: "계정이나 진료과를 찾을 수 없습니다. 목록을 새로고침해 주세요.",
+  LOGIN_ID_TAKEN: "이미 사용 중인 로그인 ID입니다 (사용중지·환자 계정 포함). 다른 ID를 입력해 주세요.",
+  NOT_FOUND: "의사나 진료과를 찾을 수 없습니다. 목록을 새로고침해 주세요.",
 };
 
 function monthRange(month: string) {
@@ -98,7 +97,8 @@ export function DoctorsSchedules() {
           >
             <EmptyAvatar name={d.name} />
             {d.name} · {d.departmentName}
-            {!d.active && <small className="subtext">사용중지</small>}
+            {!d.active && <small className="subtext">예약 중지</small>}
+            {!d.accountActive && <small className="subtext">로그인 중지</small>}
           </button>
         ))}
         {!base.loading && doctors.length === 0 && <small className="subtext">등록된 의사가 없습니다.</small>}
@@ -183,7 +183,6 @@ export function DoctorsSchedules() {
         <DoctorModal
           target={modal.target}
           departments={departments}
-          doctors={doctors}
           onClose={() => setModal(null)}
           onSaved={(d, text) => {
             setDoctorId(d.doctorId);
@@ -332,39 +331,34 @@ function DeleteScheduleModal({
 function DoctorModal({
   target,
   departments,
-  doctors,
   onClose,
   onSaved,
 }: {
   target: AdminDoctor | null;
   departments: Department[];
-  doctors: AdminDoctor[];
   onClose: () => void;
   onSaved: (doctor: AdminDoctor, notice: string) => void;
 }) {
-  // 새 의사: 아직 의사로 연결되지 않은 DOCTOR 역할 계정만 고를 수 있다
-  const accounts = useApi(async () => (target ? [] : (await adminApi.staffAccounts({ role: "DOCTOR" })).items), []);
-  const linked = new Set(doctors.map((d) => d.accountId));
-  const candidates: StaffAccount[] = (accounts.data ?? []).filter((a) => !linked.has(a.accountId));
   const activeDepartments = departments.filter((d) => d.active || d.departmentId === target?.departmentId);
-
   const [form, setForm] = useState({
-    accountId: null as number | null,
+    loginId: target?.loginId ?? "",
+    initialPassword: "",
     departmentId: (target?.departmentId ?? activeDepartments[0]?.departmentId ?? null) as number | null,
     name: target?.name ?? "",
     active: target?.active ?? true,
+    accountActive: target?.accountActive ?? true,
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const pickAccount = (id: number | null) => {
-    const account = candidates.find((a) => a.accountId === id);
-    setForm({ ...form, accountId: id, name: form.name || account?.name || "" });
-  };
-
   const submit = async () => {
     const name = form.name.trim();
-    if (!target && !form.accountId) return setError("연결할 의사 계정을 선택해 주세요.");
+    const loginId = form.loginId.trim();
+    if (!target) {
+      if (!loginId || loginId.length > 50) return setError("로그인 ID를 50자 이내로 입력해 주세요.");
+      if (form.initialPassword.length < 8 || form.initialPassword.length > 72)
+        return setError("초기 비밀번호는 8~72자로 입력해 주세요.");
+    }
     if (!form.departmentId) return setError("진료과를 선택해 주세요.");
     if (!name || name.length > 50) return setError("의사명을 50자 이내로 입력해 주세요.");
     setBusy(true);
@@ -372,16 +366,23 @@ function DoctorModal({
     try {
       if (!target) {
         const doctor = await adminApi.createDoctor({
-          accountId: form.accountId!,
+          loginId,
+          initialPassword: form.initialPassword,
           departmentId: form.departmentId,
           name,
           active: form.active,
+          accountActive: form.accountActive,
         });
         onSaved(doctor, `${name} 의사를 등록했습니다. 이제 일정을 등록할 수 있습니다.`);
       } else {
         const body = changedFields(
-          { departmentId: target.departmentId, name: target.name, active: target.active },
-          { departmentId: form.departmentId!, name, active: form.active },
+          {
+            departmentId: target.departmentId,
+            name: target.name,
+            active: target.active,
+            accountActive: target.accountActive,
+          },
+          { departmentId: form.departmentId!, name, active: form.active, accountActive: form.accountActive },
         );
         if (Object.keys(body).length === 0) return onClose();
         const doctor = await adminApi.updateDoctor(target.doctorId, body);
@@ -400,8 +401,8 @@ function DoctorModal({
       title={target ? "의사 정보 수정" : "의사 등록"}
       description={
         target
-          ? "연결된 계정은 바꿀 수 없습니다. 이름을 바꾸면 직원 계정 이름도 함께 바뀝니다."
-          : "사용자 계정에서 만든 의사 계정을 진료과와 연결합니다."
+          ? "로그인 ID와 비밀번호는 바꿀 수 없습니다."
+          : "의사가 로그인할 계정과 진료과를 함께 등록합니다."
       }
       error={error}
       busy={busy}
@@ -409,46 +410,60 @@ function DoctorModal({
       onClose={onClose}
       onSubmit={() => void submit()}
     >
+      <label className="field">
+        <span>
+          로그인 ID <i>*</i>
+        </span>
+        <input
+          value={form.loginId}
+          maxLength={50}
+          disabled={!!target}
+          autoComplete="off"
+          onChange={(e) => setForm({ ...form, loginId: e.target.value })}
+        />
+      </label>
       {!target && (
         <label className="field">
           <span>
-            의사 계정 <i>*</i>
+            초기 비밀번호 <i>*</i>
           </span>
+          <input
+            type="password"
+            value={form.initialPassword}
+            maxLength={72}
+            autoComplete="new-password"
+            placeholder="8~72자"
+            onChange={(e) => setForm({ ...form, initialPassword: e.target.value })}
+          />
+        </label>
+      )}
+      <div className="form-grid">
+        <label className="field">
+          <span>
+            의사명 <i>*</i>
+          </span>
+          <input value={form.name} maxLength={50} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        </label>
+        <label className="field">
+          <span>진료과</span>
           <select
-            value={form.accountId ?? ""}
-            onChange={(e) => pickAccount(e.target.value ? Number(e.target.value) : null)}
+            value={form.departmentId ?? ""}
+            onChange={(e) => setForm({ ...form, departmentId: e.target.value ? Number(e.target.value) : null })}
           >
-            <option value="">{accounts.loading ? "불러오는 중…" : "계정 선택"}</option>
-            {candidates.map((a) => (
-              <option key={a.accountId} value={a.accountId}>
-                {a.loginId} · {a.name}
+            {activeDepartments.map((d) => (
+              <option key={d.departmentId} value={d.departmentId}>
+                {d.name}
               </option>
             ))}
           </select>
-          {!accounts.loading && candidates.length === 0 && (
-            <small className="required">연결할 의사 계정이 없습니다. 사용자 계정에서 의사 역할 계정을 먼저 만들어 주세요.</small>
-          )}
         </label>
-      )}
-      <label className="field">
-        <span>
-          의사명 <i>*</i>
-        </span>
-        <input value={form.name} maxLength={50} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-      </label>
-      <label className="field">
-        <span>진료과</span>
-        <select
-          value={form.departmentId ?? ""}
-          onChange={(e) => setForm({ ...form, departmentId: e.target.value ? Number(e.target.value) : null })}
-        >
-          {activeDepartments.map((d) => (
-            <option key={d.departmentId} value={d.departmentId}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      </div>
+      <ActiveCheckbox
+        checked={form.accountActive}
+        onChange={(accountActive) => setForm({ ...form, accountActive })}
+        label="로그인 허용"
+        help="체크를 해제하면 이 의사 계정으로 로그인할 수 없습니다."
+      />
       <ActiveCheckbox
         checked={form.active}
         onChange={(active) => setForm({ ...form, active })}

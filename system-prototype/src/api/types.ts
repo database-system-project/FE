@@ -154,8 +154,7 @@ export type MedicalRecordInput = {
 export type CurrentMedication = {
   prescriptionId: number;
   medicationId: number;
-  /** 서버가 약품명을 같이 준다 (없으면 번호로 표시) */
-  medicationName?: string | null;
+  medicationName: string;
   prescribedAt: string;
   durationDays: number;
 };
@@ -176,7 +175,7 @@ export type VisitPrescription = {
   visitId: number;
   status: PrescriptionStatus;
   prescribedAt: string;
-  items: (PrescriptionItem & { medicationName?: string | null })[];
+  items: (PrescriptionItem & { medicationName: string })[];
 };
 
 /** GET /doctor/visits/{visitId} */
@@ -214,8 +213,7 @@ export type DurWarning = {
   type: WarningType;
   ruleKey: { medicationId?: number; ageSeq?: number; medicationAId?: number; medicationBId?: number };
   medicationIds: number[];
-  /** medicationIds와 같은 순서의 약품명 */
-  medicationNames?: (string | null)[];
+  medicationNames: string[]; // medicationIds와 같은 순서
   message: string;
 };
 
@@ -228,12 +226,13 @@ export type PrescriptionSaveResponse = { prescriptionId: number; status: "ACTIVE
 
 // ── 관리자 ──────────────────────────────
 
-export type StaffRole = "DOCTOR" | "RECEPTION" | "CASHIER" | "ADMIN";
+/** 직원 계정 역할. 의사 계정은 의사 관리(/admin/doctors)에서 따로 만든다 */
+export type StaffRole = "RECEPTION" | "CASHIER" | "ADMIN";
 export type FeeType = "FIRST_VISIT" | "FOLLOW_UP";
 export type AgeOperator = "LT" | "LTE";
 
 export type StaffAccount = { accountId: number; loginId: string; name: string; role: StaffRole; active: boolean };
-export type StaffAccountDetail = StaffAccount & { staffId: number; doctorId: number | null };
+export type StaffAccountDetail = StaffAccount & { staffId: number };
 export type StaffAccountCreate = { loginId: string; initialPassword: string; name: string; role: StaffRole; active: boolean };
 
 export type Department = { departmentId: number; name: string; active: boolean };
@@ -244,9 +243,19 @@ export type AdminDoctor = {
   departmentId: number;
   departmentName: string;
   name: string;
-  active: boolean;
+  active: boolean; // 신규 예약 허용
+  loginId: string;
+  accountActive: boolean; // 로그인 허용
 };
-export type AdminDoctorCreate = { accountId: number; departmentId: number; name: string; active: boolean };
+/** 의사 등록: 로그인 계정과 의사 정보를 한 번에 만든다 */
+export type AdminDoctorCreate = {
+  loginId: string;
+  initialPassword: string;
+  departmentId: number;
+  name: string;
+  active: boolean;
+  accountActive?: boolean;
+};
 
 export type ConsultationFee = { feeId: number; feeType: FeeType; amount: number; currency: "KRW"; effectiveFrom: string };
 

@@ -243,12 +243,7 @@ function PrescriptionForm({
     );
 
   const inDraft = (id: number) => drafts.some((d) => d.medicationId === id);
-  // 경고창에 띄울 약품명: 이번 처방 약 → 복용 중인 약 → 이번 진료의 기존 처방 순서로 찾는다
-  const knownNames = new Map<number, string>();
-  prescriptions.forEach((p) => p.items.forEach((it) => it.medicationName && knownNames.set(it.medicationId, it.medicationName)));
-  currentMedications.forEach((m) => m.medicationName && knownNames.set(m.medicationId, m.medicationName));
-  drafts.forEach((d) => knownNames.set(d.medicationId, d.name));
-  const draftName = (id: number) => medicationLabel(id, knownNames.get(id));
+  const draftName = (id: number) => drafts.find((d) => d.medicationId === id)?.name ?? medicationLabel(id);
 
   return (
     <>
@@ -555,14 +550,11 @@ function WarningItem({
 }) {
   const isInteraction = warning.type === "INTERACTION";
   const [a, b] = warning.medicationIds;
+  // 경고에 담겨 온 약품명을 먼저 쓰고, 없으면 처방 초안의 이름으로 표시한다
+  const label = (id: number) => warning.medicationNames?.[warning.medicationIds.indexOf(id)] || name(id);
   // 병용금기는 한쪽이 이번 처방 약, 다른 쪽이 복용 중인 약일 수 있다
   const prescribed = isInteraction && !inDraft(a) ? b : a;
   const other = prescribed === a ? b : a;
-  // 서버가 준 약품명을 먼저 쓴다
-  const label = (id: number) => {
-    const index = warning.medicationIds.indexOf(id);
-    return warning.medicationNames?.[index] || name(id);
-  };
   return (
     <div className="warning-item">
       <Badge tone="red">{isInteraction ? "병용금기" : "연령금기"}</Badge>

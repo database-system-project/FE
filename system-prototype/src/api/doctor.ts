@@ -57,9 +57,7 @@ export const doctorApi = {
     api.post<{ prescriptionId: number; status: "CANCELLED" }>(`/doctor/prescriptions/${prescriptionId}/cancel`),
 };
 
-// 진료 상세·금기 경고에는 약품 ID만 온다 (BE에 약품명 필드 추가 요청 예정).
-// 그때까지는 ID로 표시한다.
-/** 약품명이 있으면 이름, 없으면 번호로 표시한다 */
+/** 약품 표시 이름. 이름이 비어 오는 예외 상황에만 ID로 표시한다 */
 export function medicationLabel(id: number, name?: string | null) {
   return name || `약품 #${id}`;
 }
