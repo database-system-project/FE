@@ -17,7 +17,6 @@ import {
 } from "./shared";
 
 export const staffRoleLabel: Record<StaffRole, string> = {
-  DOCTOR: "의사",
   RECEPTION: "원무 직원",
   CASHIER: "수납 담당자",
   ADMIN: "관리자",
@@ -26,7 +25,6 @@ const roles = Object.keys(staffRoleLabel) as StaffRole[];
 
 const errors = {
   LOGIN_ID_TAKEN: "이미 사용 중인 아이디입니다 (사용중지·환자 계정 포함). 다른 아이디를 입력해 주세요.",
-  ACCOUNT_ROLE_CONFLICT: "의사 프로필이 연결된 계정은 의사 외 역할로 바꿀 수 없습니다.",
   LAST_ACTIVE_ADMIN: "마지막 활성 관리자 계정은 사용중지하거나 역할을 바꿀 수 없습니다.",
 };
 
@@ -45,7 +43,7 @@ export function Accounts() {
     <>
       <PageHeader
         title="사용자 계정 관리"
-        description="직원 계정의 역할과 사용 상태를 관리합니다. 환자 계정은 회원가입으로만 만들어지며 여기서 관리하지 않습니다."
+        description="원무·수납·관리자 계정의 역할과 사용 상태를 관리합니다. 의사 계정은 의사·일정 관리에서, 환자 계정은 회원가입으로 만들어집니다."
         actions={
           <Button icon="plus" onClick={() => setEditing("new")}>
             직원 계정 등록
@@ -152,11 +150,7 @@ function AccountModal({
           role: form.role,
           active: form.active,
         });
-        onSaved(
-          form.role === "DOCTOR"
-            ? `${name} 계정을 만들었습니다. 의사·일정 관리에서 의사로 등록해야 진료 화면을 쓸 수 있습니다.`
-            : `${name} 계정을 만들었습니다.`,
-        );
+        onSaved(`${name} 계정을 만들었습니다.`);
       } else {
         const body = changedFields(
           { name: target.name, role: target.role, active: target.active },
@@ -180,7 +174,7 @@ function AccountModal({
       description={
         target
           ? "아이디와 비밀번호는 바꿀 수 없습니다. 사용중지하면 즉시 로그인할 수 없습니다."
-          : "의사 계정은 만든 뒤 의사·일정 관리에서 진료과와 연결합니다."
+          : "의사 계정은 여기서 만들지 않고 의사·일정 관리의 의사 등록에서 만듭니다."
       }
       error={error}
       busy={busy}

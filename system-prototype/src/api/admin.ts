@@ -37,11 +37,11 @@ export const adminApi = {
   updateDepartment: (departmentId: number, body: Partial<Pick<Department, "name" | "active">>) =>
     api.patch<Department>(`/admin/departments/${departmentId}`, body),
 
-  // 의사 (DOCTOR 역할 직원 계정에 의사 프로필을 연결한다)
+  // 의사 (로그인 계정과 의사 정보를 함께 관리한다. 직원 계정과는 별개)
   doctors: (params: { departmentId?: number; keyword?: string; active?: boolean } = {}) =>
     api.get<ListResponse<AdminDoctor>>("/admin/doctors", params),
   createDoctor: (body: AdminDoctorCreate) => api.post<AdminDoctor>("/admin/doctors", body),
-  updateDoctor: (doctorId: number, body: Partial<Pick<AdminDoctor, "departmentId" | "name" | "active">>) =>
+  updateDoctor: (doctorId: number, body: Partial<Pick<AdminDoctor, "departmentId" | "name" | "active" | "accountActive">>) =>
     api.patch<AdminDoctor>(`/admin/doctors/${doctorId}`, body),
 
   // 의사 일정 (운영시간은 고정값이라 보낼 수 없다)
