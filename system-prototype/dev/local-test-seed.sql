@@ -14,12 +14,10 @@ INSERT INTO user_account(login_id, password_hash, role) VALUES ('doctor01', 'd85
 INSERT INTO user_account(login_id, password_hash, role) VALUES ('doctor02', 'b5d3e642039911b05b04af3bcff3caae67505ad7c8c25cf9343b95c20638566064c2a246e004817b9def2edda3134ae7', 'DOCTOR') ON CONFLICT (login_id) DO NOTHING;
 INSERT INTO user_account(login_id, password_hash, role) VALUES ('patient01', 'b104ce9653008351e2a3f30a2365348d127513841ef7e94ee67ec4e022d33743c5901e74fd60a080e26b3d2fd2842f9a', 'PATIENT') ON CONFLICT (login_id) DO NOTHING;
 
--- 직원 프로필 (백엔드 규칙상 의사 계정도 staff 행이 있어야 예약·진료 API가 동작함)
+-- 직원 프로필: V2부터 의사는 doctor에만 저장하며 staff와 분리한다.
 INSERT INTO staff(account_id, staff_name) SELECT account_id, '관리자' FROM user_account a WHERE login_id = 'admin01' AND NOT EXISTS (SELECT 1 FROM staff s WHERE s.account_id = a.account_id);
 INSERT INTO staff(account_id, staff_name) SELECT account_id, '원무 직원' FROM user_account a WHERE login_id = 'desk01' AND NOT EXISTS (SELECT 1 FROM staff s WHERE s.account_id = a.account_id);
 INSERT INTO staff(account_id, staff_name) SELECT account_id, '수납 담당자' FROM user_account a WHERE login_id = 'cashier01' AND NOT EXISTS (SELECT 1 FROM staff s WHERE s.account_id = a.account_id);
-INSERT INTO staff(account_id, staff_name) SELECT account_id, '이정훈' FROM user_account a WHERE login_id = 'doctor01' AND NOT EXISTS (SELECT 1 FROM staff s WHERE s.account_id = a.account_id);
-INSERT INTO staff(account_id, staff_name) SELECT account_id, '김민서' FROM user_account a WHERE login_id = 'doctor02' AND NOT EXISTS (SELECT 1 FROM staff s WHERE s.account_id = a.account_id);
 
 -- 진료과
 INSERT INTO department(department_name) SELECT '내과' WHERE NOT EXISTS (SELECT 1 FROM department WHERE department_name = '내과');
@@ -41,9 +39,9 @@ SELECT doc.doctor_id, day::date
  WHERE EXTRACT(ISODOW FROM day) <> 7
 ON CONFLICT (doctor_id, schedule_date) DO NOTHING;
 
--- 진찰료 (금액은 팀에서 확정 전 임시값: 피그마 기준)
-INSERT INTO consultation_fee(fee_type, fee_amount, effective_from, set_by_staff_id)
-SELECT t.fee_type, t.amount, TIMESTAMPTZ '2026-01-01 00:00:00+09', s.staff_id
+-- 진찰료: 11/9 회의 기준 초진 18,000원·재진 15,000원
+INSERT INTO consultation_fee(fee_type, fee_amount, effective_from, set_by_account_id)
+SELECT t.fee_type, t.amount, TIMESTAMPTZ '2026-01-01 00:00:00+09', s.account_id
   FROM (VALUES ('FIRST_VISIT', 18000), ('FOLLOW_UP', 15000)) AS t(fee_type, amount)
   JOIN staff s ON s.account_id = (SELECT account_id FROM user_account WHERE login_id = 'admin01')
 ON CONFLICT (fee_type, effective_from) DO NOTHING;

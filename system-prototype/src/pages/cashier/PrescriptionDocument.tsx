@@ -3,7 +3,7 @@ import { Button } from "../../components/Button";
 import type { PrescriptionPrint, PrintItem } from "../../api/types";
 import { formatDate, timingLabel } from "../../utils/format";
 
-// 백엔드가 약품 이름을 아직 안 줘서, 이름이 없으면 약품 번호로 보여준다 (이름 추가 요청함)
+// 약품명을 표시하고, 이전 백엔드 응답에 이름이 없으면 번호로 대체한다.
 const medicationLabel = (item: PrintItem) => item.medicationName ?? `약품 #${item.medicationId}`;
 const intervalLabel = (days: number) => (days === 1 ? "매일" : `${days}일마다`);
 
