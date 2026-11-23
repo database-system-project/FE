@@ -18,13 +18,11 @@ export const menus: Record<Role, { id: string; label: string; icon: string }[]> 
   ],
   doctor: [
     { id: "doctor-home", label: "진료 대시보드", icon: "home" },
-    { id: "doctor-home", label: "오늘의 대기 환자", icon: "users" },
     { id: "doctor-records", label: "진료 기록", icon: "file" },
     { id: "doctor-schedule", label: "진료 일정 조회", icon: "calendar" },
   ],
   cashier: [
     { id: "cashier-home", label: "수납 대시보드", icon: "home" },
-    { id: "cashier-home", label: "결제 대기", icon: "receipt" },
     { id: "cashier-history", label: "결제 내역", icon: "list" },
   ],
   admin: [
