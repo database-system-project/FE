@@ -10,7 +10,7 @@ export async function checkInWithMessage(appointmentId: number, patientName: str
     if (e instanceof ApiError && e.code === "ALREADY_CHECKED_IN")
       return { ok: false, text: `${patientName}님은 이미 접수된 예약입니다.` };
     if (e instanceof ApiError && e.code === "INVALID_APPOINTMENT_STATE")
-      return { ok: false, text: "오늘 마감(17:00) 전의 예약완료 상태만 접수할 수 있습니다." };
+      return { ok: false, text: e.message };
     return { ok: false, text: e instanceof ApiError ? e.message : "접수 중 문제가 발생했습니다." };
   }
 }
