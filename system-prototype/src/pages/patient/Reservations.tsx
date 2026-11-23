@@ -21,8 +21,8 @@ export function Reservations({ navigate }: { navigate: (s: string) => void }) {
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   const all = data?.items ?? [];
-  // 서버의 UPCOMING 기준과 같게: 예약완료이면서 아직 시간이 안 지난 것
-  const upcoming = all.filter((a) => a.status === "RESERVED" && new Date(a.startsAt).getTime() >= Date.now());
+  // 시간 제한(시연 옵션 포함)은 서버의 변경 가능 여부를 따른다.
+  const upcoming = all.filter((a) => a.status === "RESERVED" && a.canCancel);
   const past = all.filter((a) => !upcoming.includes(a));
   const rows = tab === "ALL" ? all : tab === "UPCOMING" ? upcoming : past;
 
