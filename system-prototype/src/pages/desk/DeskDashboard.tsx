@@ -78,7 +78,7 @@ export function DeskDashboard({ navigate }: { navigate: (s: string) => void }) {
             </button>
           </div>
           <div className="table-wrap">
-            <table>
+            <table className="mobile-cards">
               <thead>
                 <tr>
                   <th>예약시간</th>
@@ -91,21 +91,21 @@ export function DeskDashboard({ navigate }: { navigate: (s: string) => void }) {
               <tbody>
                 {upcoming.map((a) => (
                   <tr key={a.appointmentId}>
-                    <td>
+                    <td data-label="예약시간">
                       <b>{formatTime(a.startsAt)}</b>
                     </td>
-                    <td>
+                    <td data-label="환자">
                       <b>{a.patientName}</b>
                       <small className="subtext">{a.patientId}</small>
                     </td>
-                    <td>
+                    <td data-label="진료과 / 의사">
                       {a.departmentName}
                       <small className="subtext">{a.doctorName} 의사</small>
                     </td>
-                    <td>
+                    <td data-label="상태">
                       <Badge tone={appointmentStatusTone[a.status]}>{appointmentStatusLabel[a.status]}</Badge>
                     </td>
-                    <td>
+                    <td className="card-actions">
                       <Button disabled={busyId === a.appointmentId} onClick={() => checkIn(a.appointmentId, a.patientName)}>
                         {busyId === a.appointmentId ? "처리 중…" : "접수"}
                       </Button>

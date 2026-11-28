@@ -75,7 +75,7 @@ export function DeskReservations({ navigate }: { navigate: (s: string) => void }
       )}
       <div className="data-card">
         <div className="table-wrap">
-          <table>
+          <table className="mobile-cards">
             <thead>
               <tr>
                 <th>예약시간</th>
@@ -90,19 +90,19 @@ export function DeskReservations({ navigate }: { navigate: (s: string) => void }
             <tbody>
               {rows.map((a) => (
                 <tr key={a.appointmentId}>
-                  <td>
+                  <td data-label="예약시간">
                     <b>{formatTime(a.startsAt)}</b>
                   </td>
-                  <td className="code">{a.patientId}</td>
-                  <td>
+                  <td className="code" data-label="환자번호">{a.patientId}</td>
+                  <td data-label="환자명">
                     <b>{a.patientName}</b>
                   </td>
-                  <td>{a.departmentName}</td>
-                  <td>{a.doctorName}</td>
-                  <td>
+                  <td data-label="진료과">{a.departmentName}</td>
+                  <td data-label="담당의사">{a.doctorName}</td>
+                  <td data-label="상태">
                     <Badge tone={appointmentStatusTone[a.status]}>{appointmentStatusLabel[a.status]}</Badge>
                   </td>
-                  <td>
+                  <td className="card-actions">
                     {a.status === "RESERVED" && (
                       <Button disabled={busyId === a.appointmentId} onClick={() => checkIn(a.appointmentId, a.patientName)}>
                         {busyId === a.appointmentId ? "처리 중…" : "접수"}

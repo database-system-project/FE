@@ -30,7 +30,7 @@ export function MyReceipts() {
       <PageHeader title="전자영수증" description="진료비 결제 내역과 전자영수증을 확인할 수 있습니다." />
       <div className="data-card">
         <div className="table-wrap">
-          <table>
+          <table className="mobile-cards">
             <thead>
               <tr>
                 <th>영수증번호</th>
@@ -45,21 +45,21 @@ export function MyReceipts() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.paymentId}>
-                  <td className="code">{r.receiptNumber}</td>
-                  <td>{formatDate(r.visitDate)}</td>
-                  <td>
+                  <td className="code" data-label="영수증번호">{r.receiptNumber}</td>
+                  <td data-label="진료일">{formatDate(r.visitDate)}</td>
+                  <td data-label="진료과 / 담당 의사">
                     {r.departmentName} / {r.doctorName}
                   </td>
-                  <td>
+                  <td data-label="진찰 구분">
                     <Badge tone={r.feeType === "FIRST_VISIT" ? "blue" : "gray"}>{feeTypeLabel[r.feeType]}</Badge>
                   </td>
-                  <td>
+                  <td data-label="결제 금액">
                     <b>{r.amount.toLocaleString("ko-KR")}원</b>
                   </td>
-                  <td>
+                  <td data-label="결제시각">
                     {formatDate(r.paidAt)} {formatTime(r.paidAt)}
                   </td>
-                  <td>
+                  <td className="card-actions">
                     <Button variant="outline" onClick={() => setOpenId(r.paymentId)}>
                       영수증 보기
                     </Button>

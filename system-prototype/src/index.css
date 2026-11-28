@@ -2820,10 +2820,11 @@ tbody tr:hover {
   .sidebar {
     transform: translateX(-100%);
     transition: 0.2s;
-    box-shadow: 10px 0 30px #10283f24;
   }
+  /* 닫힌 사이드바의 그림자가 화면 왼쪽에 비치지 않도록 열렸을 때만 그림자를 준다 */
   .sidebar-open {
     transform: translateX(0);
+    box-shadow: 10px 0 30px #10283f24;
   }
   .main-wrap {
     margin-left: 0;
@@ -3374,4 +3375,94 @@ td.ellipsis-cell {
   color: #d93f45;
   font-size: 16px;
   font-weight: 800;
+}
+
+/* ── 모바일 보정 ───────────────────────────── */
+/* 가로로 밀리는 표: 오른쪽에 내용이 더 있으면 그림자로 알려준다 (스크롤 끝에 닿으면 사라짐) */
+.table-wrap {
+  background:
+    linear-gradient(to left, #fff 30%, #fff0) right / 40px 100% no-repeat local,
+    radial-gradient(farthest-side at 100% 50%, #10283f29, #10283f00) right / 14px 100% no-repeat scroll;
+}
+@media (max-width: 560px) {
+  /* 휴대폰에서는 표 행을 카드처럼 세로로 쌓는다 (td의 data-label이 항목 이름) */
+  table.mobile-cards thead {
+    display: none;
+  }
+  table.mobile-cards,
+  table.mobile-cards tbody,
+  table.mobile-cards tr,
+  table.mobile-cards td {
+    display: block;
+    width: 100%;
+  }
+  table.mobile-cards tr {
+    padding: 12px 16px;
+    border-bottom: 1px solid #edf0f3;
+  }
+  table.mobile-cards tbody tr:last-child {
+    border-bottom: 0;
+  }
+  table.mobile-cards td {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    padding: 5px 0;
+    border: 0;
+    white-space: normal;
+    text-align: right;
+  }
+  table.mobile-cards td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    color: #8c98a6;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    margin-right: auto;
+  }
+  table.mobile-cards td .subtext {
+    display: inline;
+    margin: 0;
+  }
+  /* 버튼 칸은 항목 이름 없이 꽉 채운다 */
+  table.mobile-cards td.card-actions {
+    padding-top: 8px;
+  }
+  table.mobile-cards td.card-actions:empty {
+    display: none;
+  }
+  table.mobile-cards td.card-actions > .btn,
+  table.mobile-cards td.card-actions .row-actions {
+    width: 100%;
+  }
+  table.mobile-cards td.card-actions .row-actions {
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+  table.mobile-cards td.card-actions .row-actions .btn {
+    flex: 1;
+    height: 36px;
+    font-size: 12px;
+  }
+
+  /* 일정 카드 머리: 제목과 버튼을 위아래로 나누고 버튼은 한 줄에 나눠 담는다 */
+  .card-title.schedule-title {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .schedule-title .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .schedule-title .header-actions > .btn {
+    flex: 1;
+    padding: 0 8px;
+    white-space: nowrap;
+  }
+  .card-title > .text-link {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }
