@@ -76,7 +76,7 @@ export function Reservations({ navigate }: { navigate: (s: string) => void }) {
       )}
       <div className="data-card">
         <div className="table-wrap">
-          <table>
+          <table className="mobile-cards">
             <thead>
               <tr>
                 <th>예약번호</th>
@@ -91,17 +91,17 @@ export function Reservations({ navigate }: { navigate: (s: string) => void }) {
             <tbody>
               {rows.map((a) => (
                 <tr key={a.appointmentId}>
-                  <td className="code">{a.appointmentCode}</td>
-                  <td>
+                  <td className="code" data-label="예약번호">{a.appointmentCode}</td>
+                  <td data-label="진료과">
                     <b>{a.departmentName}</b>
                   </td>
-                  <td>{a.doctorName} 의사</td>
-                  <td>{formatDate(a.startsAt)}</td>
-                  <td>{formatTime(a.startsAt)}</td>
-                  <td>
+                  <td data-label="담당 의사">{a.doctorName} 의사</td>
+                  <td data-label="예약일">{formatDate(a.startsAt)}</td>
+                  <td data-label="접수 예정시간">{formatTime(a.startsAt)}</td>
+                  <td data-label="상태">
                     <Badge tone={appointmentStatusTone[a.status]}>{appointmentStatusLabel[a.status]}</Badge>
                   </td>
-                  <td className="right">
+                  <td className="right card-actions">
                     {confirmId === a.appointmentId ? (
                       <div className="row-actions">
                         <span className="subtext">정말 취소할까요?</span>
